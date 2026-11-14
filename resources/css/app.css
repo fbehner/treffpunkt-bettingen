@@ -1,0 +1,112 @@
+/* Schriften lokal ausgeliefert – keine Verbindung zu Google (Datenschutz). */
+@import '@fontsource/fraunces/latin-700.css';
+@import '@fontsource/fraunces/latin-900.css';
+@import '@fontsource/inter/latin-400.css';
+@import '@fontsource/inter/latin-500.css';
+@import '@fontsource/inter/latin-600.css';
+@import 'tailwindcss';
+
+@source '../views';
+
+/* Farben und Schriften aus dem Plakat. */
+@theme {
+    --font-display: 'Fraunces', Georgia, 'Times New Roman', serif;
+    --font-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+    --color-creme: #f3eadf;
+    --color-beige: #e6d9c3;
+    --color-rost: #b5472f;
+    --color-rost-dunkel: #8e3522;
+    --color-senf: #e4a836;
+    --color-gruen: #2d6a5c;
+    --color-dunkel: #2b1e16;
+    --color-dunkel-weich: #5a4a3f;
+}
+
+@layer base {
+    html {
+        -webkit-text-size-adjust: 100%;
+    }
+
+    body {
+        @apply bg-creme text-dunkel font-sans antialiased;
+    }
+
+    :focus-visible {
+        outline: 3px solid var(--color-rost);
+        outline-offset: 3px;
+    }
+
+    a {
+        @apply text-rost underline decoration-2 underline-offset-4 hover:text-rost-dunkel;
+    }
+}
+
+/* Grosse Serifen-Schrift wie auf dem Plakat. */
+@utility display {
+    font-family: var(--font-display);
+    font-weight: 900;
+    letter-spacing: -0.03em;
+}
+
+@layer components {
+    .container-site {
+        @apply mx-auto w-full max-w-6xl px-4 sm:px-8;
+    }
+
+    .kicker {
+        @apply text-sm font-semibold uppercase tracking-[0.14em] sm:text-base;
+    }
+
+    /* Mobiles Menü */
+    [data-nav] {
+        @apply hidden;
+    }
+
+    [data-nav].is-open {
+        @apply flex;
+    }
+
+    @media (min-width: 48rem) {
+        [data-nav] {
+            @apply flex;
+        }
+    }
+
+    /* Text aus dem Editor (Seiten) */
+    .prose-site {
+        @apply max-w-[68ch] text-lg leading-relaxed;
+    }
+
+    .prose-site > * + * {
+        @apply mt-5;
+    }
+
+    .prose-site h2 {
+        @apply display mt-12 text-3xl leading-tight sm:text-4xl;
+    }
+
+    .prose-site h3 {
+        @apply display mt-8 text-2xl leading-tight;
+    }
+
+    .prose-site ul {
+        @apply list-disc pl-6;
+    }
+
+    .prose-site ol {
+        @apply list-decimal pl-6;
+    }
+
+    .prose-site li + li {
+        @apply mt-2;
+    }
+
+    .prose-site blockquote {
+        @apply border-rost display border-l-4 pl-5 text-2xl font-bold;
+    }
+
+    .button {
+        @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-rost px-6 py-3 font-semibold text-white no-underline transition-colors hover:bg-rost-dunkel hover:text-white;
+    }
+}
