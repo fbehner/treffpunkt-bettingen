@@ -2,6 +2,8 @@
     $m = $membership;
     $contact = $m->contact();
     $statutes = \App\Support\Ui::file(\App\Models\Setting::get('statutes_file'));
+    // Gönnerbeitrag: aus dem Gesuch, sonst aus dem ersten Jahresbeitrag
+    $donation = (int) ($m->application?->donation ?: $m->fees()->reorder()->orderBy('year')->value('donation'));
 @endphp
 <x-mail::message>
 # Willkommen im Verein!
@@ -14,8 +16,14 @@ Der Vorstand hat {{ $m->organisation ? 'die Mitgliedschaft von '.$m->organisatio
 **Mitgliedernummer:** {{ $m->number }}<br>
 **Mitgliedschaft:** {{ $m->typeInfo()->label() }}<br>
 **Mitglied seit:** {{ $m->joined_at?->format('d.m.Y') }}<br>
-**Jahresbeitrag:** CHF {{ $m->fee }}
+**Jahresbeitrag:** CHF {{ $m->fee }}@if ($donation > 0)<br>
+**Gönnerbeitrag:** CHF {{ $donation }}@endif
 </x-mail::panel>
+
+@if ($donation > 0)
+**Herzlichen Dank für euren Gönnerbeitrag von CHF {{ $donation }}!** Damit helft ihr ganz direkt, den Treffpunkt für Bettingen möglich zu machen.
+
+@endif
 
 Der Jahresbeitrag wird jeweils per 1. Januar fällig. Die Rechnung erhaltet ihr separat.
 

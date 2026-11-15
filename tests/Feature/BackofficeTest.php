@@ -248,6 +248,7 @@ class BackofficeTest extends TestCase
         $this->assertSame('valentin@example.test', $log->to);
         $this->assertSame('mitglieder', $log->category);
         $this->assertStringContainsString('Mitgliedernummer:</strong> 5', $log->html);
+        $this->assertStringNotContainsString('Gönnerbeitrag', $log->html);
 
         // Ohne Häkchen → keine Mail.
         $b = $this->application(['email' => 'still@example.test']);
@@ -272,5 +273,14 @@ class BackofficeTest extends TestCase
         ])->accept(now());
 
         $this->assertSame(['to' => 'noah@example.test', 'cc' => 'eva@example.test'], MembershipMails::welcomeRecipients($m->load('application')));
+    }
+
+    public function test_willkommens_mail_dankt_fuer_goennerbeitrag(): void
+    {
+        $m = $this->application(['donation' => 100])->accept(now());
+        $html = (new \App\Mail\MembershipWelcome($m->load('application')))->render();
+
+        $this->assertStringContainsString('Herzlichen Dank für euren Gönnerbeitrag von CHF 100!', $html);
+        $this->assertStringContainsString('Gönnerbeitrag:</strong> CHF 100', $html);
     }
 }
