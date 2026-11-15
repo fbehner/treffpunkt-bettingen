@@ -31,7 +31,7 @@ class Page extends Model
     /** Slugs, die von festen Routen belegt sind. */
     public const RESERVED_SLUGS = [
         'admin', 'login', 'logout', 'build', 'storage', 'up', 'livewire', 'filament',
-        'aktuelles', 'mitglied-werden', 'fonts', 'css', 'js',
+        'aktuelles', 'mitglied-werden', 'einladung', 'backoffice', 'fonts', 'css', 'js',
     ];
 
     public function scopePublished(Builder $query): Builder

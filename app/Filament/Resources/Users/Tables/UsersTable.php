@@ -24,6 +24,7 @@ class UsersTable
                     ->searchable(),
                 TextColumn::make('roles')
                     ->label('Rollen')
+                    ->placeholder('wartet auf Freigabe')
                     ->formatStateUsing(fn (string $state) => User::ROLES[$state] ?? $state)
                     ->badge()
                     ->color(fn (string $state) => match ($state) {

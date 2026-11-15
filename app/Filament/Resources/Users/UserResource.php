@@ -34,6 +34,24 @@ class UserResource extends Resource
         return auth()->user()?->isAdmin() ?? false;
     }
 
+    /** Konten ohne Rolle warten auf Freigabe. */
+    public static function getNavigationBadge(): ?string
+    {
+        $waiting = User::query()->where(fn ($q) => $q->whereNull('roles')->orWhereJsonLength('roles', 0))->count();
+
+        return $waiting > 0 ? (string) $waiting : null;
+    }
+
+    public static function getNavigationBadgeColor(): ?string
+    {
+        return 'warning';
+    }
+
+    public static function getNavigationBadgeTooltip(): ?string
+    {
+        return 'Konten warten auf Freigabe';
+    }
+
     public static function form(Schema $schema): Schema
     {
         return UserForm::configure($schema);

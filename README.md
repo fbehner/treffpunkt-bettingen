@@ -20,6 +20,11 @@ Ein Konto kann mehrere Rollen haben (vergeben vom Webadmin unter *Verwaltung →
 Der Webadmin sieht **keine** Mitgliederdaten, ausser er hat zusätzlich die Rolle
 Mitgliederverwaltung.
 
+**Neue Personen einladen:** *Verwaltung → Benutzer → Person einladen*. Die Person
+bekommt einen Link (14 Tage gültig, einmal nutzbar), legt ihr Konto an und hat
+zunächst keine Rolle. Alle Webadmins erhalten eine E-Mail; sobald einer Rollen
+zuweist, wird die Person per E-Mail informiert.
+
 ## Website-Verwaltung (`/admin`)
 
 | Bereich | Wer | Inhalt |
