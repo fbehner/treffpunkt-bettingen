@@ -3,6 +3,7 @@
 namespace App\Providers\Filament;
 
 use App\Filament\InitialsAvatarProvider;
+use Filament\Actions\Action;
 use Filament\FontProviders\LocalFontProvider;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
@@ -12,6 +13,7 @@ use Filament\Pages\Dashboard;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
+use Filament\Support\Icons\Heroicon;
 use Filament\Widgets\AccountWidget;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
@@ -60,6 +62,13 @@ class AdminPanelProvider extends PanelProvider
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\Filament\Widgets')
             ->widgets([
                 AccountWidget::class,
+            ])
+            ->userMenuItems([
+                Action::make('backoffice')
+                    ->label('Backoffice (Mitglieder)')
+                    ->icon(Heroicon::OutlinedIdentification)
+                    ->url('/backoffice')
+                    ->visible(fn () => auth()->user()?->canAccessPanel(filament()->getPanel('backoffice')) ?? false),
             ])
             ->middleware([
                 EncryptCookies::class,

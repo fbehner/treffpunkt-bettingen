@@ -140,26 +140,26 @@ class SiteTest extends TestCase
 
     public function test_redaktion_hat_keinen_zugriff_auf_benutzer_und_gesuche(): void
     {
-        $redaktion = User::factory()->create(['role' => 'redaktion']);
+        $redaktion = User::factory()->create(['roles' => ['redaktion']]);
 
         $this->actingAs($redaktion)->get('/admin/pages')->assertOk();
         $this->actingAs($redaktion)->get('/admin/users')->assertForbidden();
-        $this->actingAs($redaktion)->get('/admin/membership-applications')->assertForbidden();
+        $this->actingAs($redaktion)->get('/backoffice')->assertForbidden();
     }
 
     public function test_deaktivierte_konten_kommen_nicht_in_die_verwaltung(): void
     {
-        $user = User::factory()->create(['role' => 'admin', 'is_active' => false]);
+        $user = User::factory()->create(['roles' => ['admin'], 'is_active' => false]);
 
         $this->actingAs($user)->get('/admin')->assertForbidden();
     }
 
     public function test_admin_sieht_alle_bereiche(): void
     {
-        $admin = User::factory()->create(['role' => 'admin']);
+        $admin = User::factory()->create(['roles' => ['admin']]);
         $home = Page::where('slug', Page::HOME_SLUG)->first();
 
-        foreach (['/admin', '/admin/einstellungen', '/admin/offers', '/admin/pages', "/admin/pages/{$home->id}/edit", '/admin/posts', '/admin/users', '/admin/membership-applications'] as $url) {
+        foreach (['/admin', '/admin/einstellungen', '/admin/offers', '/admin/pages', "/admin/pages/{$home->id}/edit", '/admin/posts', '/admin/users'] as $url) {
             $this->actingAs($admin)->get($url)->assertOk();
         }
     }

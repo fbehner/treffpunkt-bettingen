@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Filament\Resources\MembershipApplications\Tables;
+namespace App\Filament\Backoffice\Resources\MembershipApplications\Tables;
 
+use App\Filament\Backoffice\Actions\AcceptApplicationAction;
 use App\Models\MembershipApplication;
 use App\Support\MembershipType;
 use Filament\Actions\Action;
@@ -9,7 +10,6 @@ use Filament\Actions\BulkAction;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
-use Filament\Notifications\Notification;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
@@ -22,12 +22,17 @@ class MembershipApplicationsTable
     public static function configure(Table $table): Table
     {
         return $table
-            ->defaultSort('created_at', 'desc')
+            ->defaultSort(fn ($query) => $query->orderByRaw('COALESCE(received_at, created_at) desc'))
             ->columns([
-                TextColumn::make('created_at')
+                TextColumn::make('received_at')
                     ->label('Eingang')
+                    ->state(fn (MembershipApplication $record) => $record->receivedDate())
                     ->date('d.m.Y')
-                    ->sortable(),
+                    ->sortable(query: fn ($query, string $direction) => $query->orderByRaw('COALESCE(received_at, created_at) '.($direction === 'asc' ? 'asc' : 'desc'))),
+                TextColumn::make('source')
+                    ->label('Per')
+                    ->formatStateUsing(fn (string $state) => MembershipApplication::SOURCES[$state] ?? $state)
+                    ->toggleable(),
                 TextColumn::make('last_name')
                     ->label('Name')
                     ->formatStateUsing(fn (MembershipApplication $record) => $record->displayName())
@@ -63,6 +68,9 @@ class MembershipApplicationsTable
                 SelectFilter::make('type')
                     ->label('Mitgliedschaft')
                     ->options(MembershipType::options()),
+                SelectFilter::make('source')
+                    ->label('Eingegangen per')
+                    ->options(MembershipApplication::SOURCES),
             ])
             ->headerActions([
                 Action::make('export')
@@ -72,18 +80,11 @@ class MembershipApplicationsTable
                     ->action(fn () => self::csv(MembershipApplication::query()->orderBy('last_name')->get())),
             ])
             ->recordActions([
+                AcceptApplicationAction::make(),
                 EditAction::make(),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
-                    BulkAction::make('accept')
-                        ->label('Als aufgenommen markieren')
-                        ->icon(Heroicon::OutlinedCheck)
-                        ->requiresConfirmation()
-                        ->action(function (Collection $records) {
-                            $records->each->update(['status' => 'aufgenommen']);
-                            Notification::make()->title('Status geändert')->success()->send();
-                        }),
                     BulkAction::make('exportSelected')
                         ->label('Auswahl exportieren (CSV)')
                         ->icon(Heroicon::OutlinedArrowDownTray)
@@ -97,7 +98,8 @@ class MembershipApplicationsTable
     public static function csv(Collection $records): StreamedResponse
     {
         $columns = [
-            'Eingang' => fn ($r) => $r->created_at?->format('d.m.Y'),
+            'Eingang' => fn ($r) => $r->receivedDate()?->format('d.m.Y'),
+            'Per' => fn ($r) => MembershipApplication::SOURCES[$r->source] ?? $r->source,
             'Status' => fn ($r) => MembershipApplication::STATUSES[$r->status] ?? $r->status,
             'Mitgliedschaft' => fn ($r) => MembershipType::from($r->type)->label(),
             'Beitrag CHF' => fn ($r) => $r->fee,

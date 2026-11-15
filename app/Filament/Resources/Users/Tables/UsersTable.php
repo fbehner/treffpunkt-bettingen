@@ -22,11 +22,15 @@ class UsersTable
                 TextColumn::make('email')
                     ->label('E-Mail')
                     ->searchable(),
-                TextColumn::make('role')
-                    ->label('Rolle')
-                    ->formatStateUsing(fn (string $state) => str(User::ROLES[$state] ?? $state)->before(' ('))
+                TextColumn::make('roles')
+                    ->label('Rollen')
+                    ->formatStateUsing(fn (string $state) => User::ROLES[$state] ?? $state)
                     ->badge()
-                    ->color(fn (string $state) => $state === 'admin' ? 'danger' : 'gray'),
+                    ->color(fn (string $state) => match ($state) {
+                        'admin' => 'danger',
+                        'mitglieder' => 'success',
+                        default => 'gray',
+                    }),
                 IconColumn::make('is_active')
                     ->label('Aktiv')
                     ->boolean(),

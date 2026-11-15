@@ -6,6 +6,7 @@ use App\Models\User;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Validator;
 
+use function Laravel\Prompts\multiselect;
 use function Laravel\Prompts\password;
 use function Laravel\Prompts\text;
 
@@ -16,7 +17,7 @@ class CreateAdmin extends Command
 {
     protected $signature = 'verein:admin';
 
-    protected $description = 'Administrationskonto für die Verwaltung anlegen';
+    protected $description = 'Konto für Verwaltung oder Backoffice anlegen';
 
     public function handle(): int
     {
@@ -25,17 +26,25 @@ class CreateAdmin extends Command
             ['email' => $v],
             ['email' => 'email|unique:users,email']
         )->errors()->first('email') ?: null);
+        $roles = multiselect(
+            'Rollen',
+            options: User::ROLES,
+            default: ['admin'],
+            required: true,
+            hint: 'Leertaste zum Auswählen',
+        );
         $password = password('Passwort (mind. 10 Zeichen)', required: true, validate: fn ($v) => strlen($v) < 10 ? 'Mindestens 10 Zeichen.' : null);
 
         User::create([
             'name' => $name,
             'email' => $email,
             'password' => $password,
-            'role' => 'admin',
+            'roles' => $roles,
             'is_active' => true,
         ]);
 
-        $this->info("Konto für {$email} angelegt. Anmeldung unter ".rtrim(config('app.url'), '/').'/admin');
+        $base = rtrim(config('app.url'), '/');
+        $this->info("Konto für {$email} angelegt. Website-Verwaltung: {$base}/admin · Backoffice: {$base}/backoffice");
 
         return self::SUCCESS;
     }

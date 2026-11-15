@@ -33,6 +33,8 @@ class MembershipController extends Controller
         // Nur Felder übernehmen, die zur gewählten Art gehören.
         $application = MembershipApplication::create([
             'type' => $type->value,
+            'source' => 'web',
+            'received_at' => now()->toDateString(),
             'fee' => $type->fee(),
             'organisation' => $type->isOrganisation() ? $data['organisation'] : null,
             'first_name' => $data['first_name'],

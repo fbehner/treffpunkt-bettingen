@@ -3,11 +3,24 @@
 Website des Vereins Treffpunkt Bettingen: **treffpunkt-bettingen.ch**
 
 - **Laravel 12** (PHP) – die Anwendung
-- **Filament 4** – Verwaltungsoberfläche unter `/admin`
+- **Filament 4** – Website-Verwaltung unter `/admin`, Backoffice (Mitglieder) unter `/backoffice`
 - **Tailwind CSS 4** – Gestaltung im Stil des Plakats „Ein Ort des aktiven Treffens.“
 - Gehostet bei **green.ch** (Webhosting S, PHP + MySQL)
 
-## Was die Verwaltung kann
+## Rollen
+
+Ein Konto kann mehrere Rollen haben (vergeben vom Webadmin unter *Verwaltung → Benutzer*):
+
+| Rolle | Bereich | Darf |
+| --- | --- | --- |
+| Webadmin | `/admin` | Benutzerkonten, Einstellungen, alle Inhalte |
+| Redaktion | `/admin` | Seiten, Angebote, Aktuelles |
+| Mitgliederverwaltung | `/backoffice` | Beitrittsgesuche, Mitglieder, Beiträge (Personendaten) |
+
+Der Webadmin sieht **keine** Mitgliederdaten, ausser er hat zusätzlich die Rolle
+Mitgliederverwaltung.
+
+## Website-Verwaltung (`/admin`)
 
 | Bereich | Wer | Inhalt |
 | --- | --- | --- |
@@ -15,8 +28,18 @@ Website des Vereins Treffpunkt Bettingen: **treffpunkt-bettingen.ch**
 | Angebote | Redaktion, Admin | Die farbigen Kacheln „Das alles könnte hier stattfinden“ |
 | Aktuelles | Redaktion, Admin | Neuigkeiten und Termine |
 | Einstellungen | Redaktion, Admin | Hinweisband, Kontakt, Statuten-PDF, Mitgliederbeiträge |
-| Beitrittsgesuche | nur Admin | Online-Gesuche, Status, Export als CSV |
-| Benutzer | nur Admin | Zugänge für Vereinsmitglieder, Rollen, deaktivieren |
+| Benutzer | Webadmin | Zugänge, Rollen, deaktivieren |
+
+## Backoffice (`/backoffice`)
+
+| Bereich | Inhalt |
+| --- | --- |
+| Beitrittsgesuche | Online-Gesuche und von Hand erfasste (Papier, E-Mail, persönlich); „Aufnehmen“ erzeugt die Mitgliedschaft |
+| Mitglieder | Mitgliedschaften mit Nummer, Personen (Stimmrecht ab 16), Eintritt/Austritt, Hinweis auf Altersübergang; Export Mitgliederliste und Stimmberechtigte für die GV |
+| Beiträge | Jahresbeiträge erzeugen, als bezahlt markieren, Export für die Rechnungsstellung |
+
+Datenmodell: `Membership` (Rechnungseinheit) → `MembershipPerson` (Personen) und
+`MembershipFee` (ein Eintrag pro Jahr). `MembershipApplication` bleibt als Beleg.
 
 ### Bausteine für Seiten
 
@@ -63,7 +86,8 @@ scripts/deploy.sh
 
 ```
 app/Models/                 Offer, Page (mit Bausteinen), Post, MembershipApplication, Setting, User
-app/Filament/               Verwaltungsoberfläche
+app/Filament/               Website-Verwaltung (/admin)
+app/Filament/Backoffice/    Backoffice (/backoffice): Gesuche, Mitglieder, Beiträge
 app/Http/Controllers/       SiteController (Seiten, Aktuelles), MembershipController
 app/Mail/                   E-Mails zum Beitrittsgesuch
 resources/views/            page, blocks/, posts/, membership/, mail/, Layout, Symbole

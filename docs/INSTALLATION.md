@@ -73,15 +73,17 @@ Danach lokal:
 scripts/deploy.sh
 ```
 
-## 4. Erstes Admin-Konto
+## 4. Erstes Konto
 
 ```bash
 ssh USER@HOST
 cd ~/app && php artisan verein:admin
 ```
 
-Die Verwaltung ist unter **https://treffpunkt-bettingen.ch/admin** erreichbar.
-Weitere Personen legt ein Admin dort unter *Verwaltung → Benutzer* an.
+Der Befehl fragt nach den Rollen (Webadmin, Redaktion, Mitgliederverwaltung).
+Website-Verwaltung: **https://treffpunkt-bettingen.ch/admin**, Backoffice:
+**https://treffpunkt-bettingen.ch/backoffice**. Weitere Personen legt ein
+Webadmin unter *Verwaltung → Benutzer* an und vergibt dort die Rollen.
 
 ## 5. Cronjob (einer von 4 im Paket S)
 

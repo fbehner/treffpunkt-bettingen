@@ -38,7 +38,12 @@ Vereinswebsite **treffpunkt-bettingen.ch**. Der Betreuer (Frank) lässt die Webs
   Erziehungsberechtigte: „Sie“.
 - `ContentSeeder` legt nur fehlende Startinhalte an und überschreibt nie
   Bearbeitetes – er läuft bei jedem Deploy.
-- Rollen: `admin` (alles), `redaktion` (Inhalte). Benutzerverwaltung nur admin.
+- Rollen (`users.roles`, mehrere möglich): `admin` = Webadmin (Benutzer,
+  Einstellungen, Inhalte), `redaktion` = Inhalte, `mitglieder` = Backoffice.
+  Zugriff je Bereich: `User::PANEL_ROLES`. Webadmin sieht ohne `mitglieder`
+  keine Personendaten – so lassen.
+- Backoffice-Code unter `app/Filament/Backoffice/`. Mitgliedschaft entsteht nur
+  über „Aufnehmen“ (`MembershipApplication::accept()`) oder direkte Erfassung.
 
 ## Vor jedem Commit
 ```bash

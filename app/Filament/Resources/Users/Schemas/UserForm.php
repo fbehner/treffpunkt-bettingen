@@ -3,7 +3,7 @@
 namespace App\Filament\Resources\Users\Schemas;
 
 use App\Models\User;
-use Filament\Forms\Components\Select;
+use Filament\Forms\Components\CheckboxList;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Section;
@@ -28,12 +28,16 @@ class UserForm
                             ->email()
                             ->required()
                             ->unique(ignoreRecord: true),
-                        Select::make('role')
-                            ->label('Rolle')
+                        CheckboxList::make('roles')
+                            ->label('Rollen')
                             ->options(User::ROLES)
-                            ->default('redaktion')
+                            ->descriptions(User::ROLE_HINTS)
+                            ->default(['redaktion'])
                             ->required()
-                            ->native(false),
+                            ->minItems(1)
+                            ->columnSpanFull()
+                            // Eigenes Webadmin-Recht nicht versehentlich entfernen.
+                            ->disableOptionWhen(fn (string $value, ?User $record) => $value === 'admin' && $record?->is(auth()->user())),
                         Toggle::make('is_active')
                             ->label('Aktiv')
                             ->helperText('Deaktivierte Konten können sich nicht mehr anmelden.')

@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Filament\Resources\MembershipApplications\Pages;
+namespace App\Filament\Backoffice\Resources\MembershipApplications\Pages;
 
-use App\Filament\Resources\MembershipApplications\MembershipApplicationResource;
+use App\Filament\Backoffice\Resources\MembershipApplications\MembershipApplicationResource;
 use Filament\Resources\Pages\CreateRecord;
 
 class CreateMembershipApplication extends CreateRecord

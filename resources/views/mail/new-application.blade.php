@@ -28,7 +28,7 @@
 {{ $a->message }}
 @endif
 
-<x-mail::button :url="url('/admin/membership-applications/'.$a->id.'/edit')">
-In der Verwaltung öffnen
+<x-mail::button :url="url('/backoffice/membership-applications/'.$a->id.'/edit')">
+Im Backoffice öffnen
 </x-mail::button>
 </x-mail::message>

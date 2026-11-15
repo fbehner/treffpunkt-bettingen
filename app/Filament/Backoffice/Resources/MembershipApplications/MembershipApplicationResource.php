@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Filament\Resources\MembershipApplications;
+namespace App\Filament\Backoffice\Resources\MembershipApplications;
 
-use App\Filament\Resources\MembershipApplications\Pages\CreateMembershipApplication;
-use App\Filament\Resources\MembershipApplications\Pages\EditMembershipApplication;
-use App\Filament\Resources\MembershipApplications\Pages\ListMembershipApplications;
-use App\Filament\Resources\MembershipApplications\Schemas\MembershipApplicationForm;
-use App\Filament\Resources\MembershipApplications\Tables\MembershipApplicationsTable;
+use App\Filament\Backoffice\Resources\MembershipApplications\Pages\CreateMembershipApplication;
+use App\Filament\Backoffice\Resources\MembershipApplications\Pages\EditMembershipApplication;
+use App\Filament\Backoffice\Resources\MembershipApplications\Pages\ListMembershipApplications;
+use App\Filament\Backoffice\Resources\MembershipApplications\Schemas\MembershipApplicationForm;
+use App\Filament\Backoffice\Resources\MembershipApplications\Tables\MembershipApplicationsTable;
 use App\Models\MembershipApplication;
 use BackedEnum;
 use Filament\Resources\Resource;
@@ -26,12 +26,12 @@ class MembershipApplicationResource extends Resource
 
     protected static string|\UnitEnum|null $navigationGroup = 'Mitglieder';
 
-    protected static ?int $navigationSort = 5;
+    protected static ?int $navigationSort = 1;
 
-    /** Personendaten: nur für die Administration (Vorstand). */
+    /** Personendaten: nur für die Mitgliederverwaltung. */
     public static function canAccess(): bool
     {
-        return auth()->user()?->isAdmin() ?? false;
+        return auth()->user()?->canManageMembers() ?? false;
     }
 
     public static function getNavigationBadge(): ?string

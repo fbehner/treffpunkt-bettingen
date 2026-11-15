@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Filament\Resources\MembershipApplications\Schemas;
+namespace App\Filament\Backoffice\Resources\MembershipApplications\Schemas;
 
 use App\Models\MembershipApplication;
 use App\Support\MembershipType;
@@ -71,9 +71,24 @@ class MembershipApplicationForm
                 Section::make('Bearbeitung')
                     ->columnSpan(1)
                     ->schema([
+                        Select::make('source')
+                            ->label('Eingegangen per')
+                            ->options(MembershipApplication::SOURCES)
+                            ->default('papier')
+                            ->required()
+                            ->native(false),
+                        DatePicker::make('received_at')
+                            ->label('Eingangsdatum')
+                            ->helperText('Bei Online-Gesuchen automatisch.')
+                            ->default(now())
+                            ->native(false)
+                            ->displayFormat('d.m.Y'),
                         Select::make('status')
                             ->label('Status')
-                            ->options(MembershipApplication::STATUSES)
+                            ->helperText('„Aufgenommen“ setzt ihr über den Knopf „Aufnehmen“ – so entsteht die Mitgliedschaft.')
+                            ->options(fn (?MembershipApplication $record) => $record?->membership_id
+                                ? MembershipApplication::STATUSES
+                                : collect(MembershipApplication::STATUSES)->except('aufgenommen')->all())
                             ->default('eingegangen')
                             ->required()
                             ->native(false),
@@ -88,16 +103,17 @@ class MembershipApplicationForm
                                 TextInput::make('guardian_name')->label('Name'),
                                 TextInput::make('guardian_email')->label('E-Mail')->email(),
                                 DateTimePicker::make('guardian_confirmed_at')
-                                    ->label('Bestätigt am')
+                                    ->label('Bestätigt / unterschrieben am')
                                     ->native(false)
                                     ->displayFormat('d.m.Y H:i'),
                             ]),
                         DateTimePicker::make('statutes_accepted_at')
-                            ->label('Statuten akzeptiert am')
+                            ->label('Statuten akzeptiert / unterschrieben am')
+                            ->default(now())
                             ->native(false)
                             ->displayFormat('d.m.Y H:i'),
                         DateTimePicker::make('created_at')
-                            ->label('Eingegangen am')
+                            ->label('Erfasst am')
                             ->native(false)
                             ->displayFormat('d.m.Y H:i')
                             ->disabled()
