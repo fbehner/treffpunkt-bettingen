@@ -2,6 +2,7 @@
 
 namespace App\Filament\Backoffice\Resources\MembershipApplications\Schemas;
 
+use App\Filament\Backoffice\Actions\DuplicateApplicationAction;
 use App\Filament\Backoffice\Forms\SwissDate;
 use App\Models\MembershipApplication;
 use App\Support\MembershipType;
@@ -22,6 +23,7 @@ class MembershipApplicationForm
         return $schema
             ->columns(3)
             ->components([
+                DuplicateApplicationAction::callout(),
                 Section::make('Gesuch')
                     ->columnSpan(2)
                     ->columns(2)
@@ -83,7 +85,7 @@ class MembershipApplicationForm
                             ->helperText('„Aufgenommen“ setzt ihr über den Knopf „Aufnehmen“ – so entsteht die Mitgliedschaft.')
                             ->options(fn (?MembershipApplication $record) => $record?->membership_id
                                 ? MembershipApplication::STATUSES
-                                : collect(MembershipApplication::STATUSES)->except('aufgenommen')->all())
+                                : collect(MembershipApplication::STATUSES)->except(['aufgenommen'])->all())
                             ->default('eingegangen')
                             ->required()
                             ->native(false),

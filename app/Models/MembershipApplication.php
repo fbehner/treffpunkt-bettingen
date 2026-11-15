@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Support\MembershipType;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
@@ -19,6 +20,7 @@ class MembershipApplication extends Model
         'aufgenommen' => 'Aufgenommen',
         'abgelehnt' => 'Abgelehnt',
         'zurueckgezogen' => 'Zurückgezogen',
+        'doppelt' => 'Doppelt eingereicht',
     ];
 
     /** Wie das Gesuch eingegangen ist. */
@@ -30,7 +32,7 @@ class MembershipApplication extends Model
     ];
 
     protected $fillable = [
-        'type', 'source', 'received_at', 'membership_id', 'fee', 'organisation', 'first_name', 'last_name', 'birthdate',
+        'type', 'source', 'received_at', 'membership_id', 'duplicate_of_id', 'fee', 'organisation', 'first_name', 'last_name', 'birthdate',
         'partner_first_name', 'partner_last_name', 'children',
         'street', 'zip_city', 'phone', 'email',
         'guardian_name', 'guardian_email', 'guardian_confirmed_at',
@@ -51,6 +53,66 @@ class MembershipApplication extends Model
     public function membership(): BelongsTo
     {
         return $this->belongsTo(Membership::class);
+    }
+
+    public function duplicateOf(): BelongsTo
+    {
+        return $this->belongsTo(self::class, 'duplicate_of_id');
+    }
+
+    /**
+     * Andere Gesuche derselben Person: gleiche E-Mail oder gleicher Vor- und Nachname.
+     * Erledigte Duplikate zählen nicht.
+     */
+    public function scopeSamePersonAs(Builder $query, self $application): Builder
+    {
+        return $query->whereKeyNot($application->getKey())
+            ->where('status', '!=', 'doppelt')
+            ->where(fn (Builder $q) => $q
+                ->whereRaw('LOWER(email) = ?', [mb_strtolower($application->email)])
+                ->orWhere(fn (Builder $n) => $n
+                    ->whereRaw('LOWER(first_name) = ?', [mb_strtolower($application->first_name)])
+                    ->whereRaw('LOWER(last_name) = ?', [mb_strtolower($application->last_name)])));
+    }
+
+    /** Mögliche Duplikate: andere Gesuche und bestehende Mitgliedschaften derselben Person. */
+    public function possibleDuplicates(): array
+    {
+        $applications = self::query()->samePersonAs($this)->orderBy('created_at')->get();
+
+        $memberships = Membership::query()
+            ->with('people')
+            ->where(fn (Builder $q) => $q
+                ->whereRaw('LOWER(email) = ?', [mb_strtolower($this->email)])
+                ->orWhereHas('people', fn (Builder $p) => $p
+                    ->whereRaw('LOWER(email) = ?', [mb_strtolower($this->email)])
+                    ->orWhere(fn (Builder $n) => $n
+                        ->whereRaw('LOWER(first_name) = ?', [mb_strtolower($this->first_name)])
+                        ->whereRaw('LOWER(last_name) = ?', [mb_strtolower((string) $this->last_name)]))))
+            ->when($this->membership_id, fn (Builder $q) => $q->whereKeyNot($this->membership_id))
+            ->get();
+
+        return ['applications' => $applications, 'memberships' => $memberships];
+    }
+
+    public function hasPossibleDuplicates(): bool
+    {
+        $found = $this->possibleDuplicates();
+
+        return $found['applications']->isNotEmpty() || $found['memberships']->isNotEmpty();
+    }
+
+    /** Als doppelt erledigen – ohne E-Mail an die Person. */
+    public function markAsDuplicateOf(self $original): void
+    {
+        $note = 'Doppelt eingereicht – massgeblich ist das Gesuch vom '.$original->receivedDate()?->format('d.m.Y')
+            .($original->membership ? ' (Mitglied Nr. '.$original->membership->number.')' : '').'.';
+
+        $this->update([
+            'status' => 'doppelt',
+            'duplicate_of_id' => $original->id,
+            'notes' => trim(($this->notes ? $this->notes."\n" : '').$note),
+        ]);
     }
 
     /** Eingangsdatum: bei Papier/E-Mail erfasst, sonst Zeitpunkt der Online-Eingabe. */

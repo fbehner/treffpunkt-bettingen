@@ -12,8 +12,10 @@ use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -50,6 +52,13 @@ class MembershipApplicationsTable
                 TextColumn::make('email')
                     ->label('E-Mail')
                     ->toggleable(),
+                TextColumn::make('duplicate_hint')
+                    ->label('')
+                    ->state(fn (MembershipApplication $record) => in_array($record->status, ['eingegangen', 'bestaetigung'], true) && $record->hasPossibleDuplicates() ? 'Doppelt?' : null)
+                    ->badge()
+                    ->color('warning')
+                    ->icon(Heroicon::OutlinedDocumentDuplicate)
+                    ->tooltip('Gleiche E-Mail oder gleicher Name wie ein anderes Gesuch oder Mitglied'),
                 TextColumn::make('status')
                     ->label('Status')
                     ->formatStateUsing(fn (string $state) => MembershipApplication::STATUSES[$state] ?? $state)
@@ -58,6 +67,7 @@ class MembershipApplicationsTable
                         'aufgenommen' => 'success',
                         'eingegangen' => 'warning',
                         'bestaetigung' => 'info',
+                        'doppelt' => 'gray',
                         default => 'gray',
                     }),
             ])
@@ -68,6 +78,18 @@ class MembershipApplicationsTable
                 SelectFilter::make('type')
                     ->label('Mitgliedschaft')
                     ->options(MembershipType::options()),
+                Filter::make('duplicates')
+                    ->label('Mögliche Duplikate (offen)')
+                    ->query(fn (Builder $query) => $query->whereIn('status', ['eingegangen', 'bestaetigung'])
+                        ->whereExists(fn ($sub) => $sub->selectRaw('1')
+                            ->from('membership_applications as other')
+                            ->whereColumn('other.id', '!=', 'membership_applications.id')
+                            ->where('other.status', '!=', 'doppelt')
+                            ->where(fn ($w) => $w
+                                ->whereRaw('LOWER(other.email) = LOWER(membership_applications.email)')
+                                ->orWhere(fn ($n) => $n
+                                    ->whereRaw('LOWER(other.first_name) = LOWER(membership_applications.first_name)')
+                                    ->whereRaw('LOWER(other.last_name) = LOWER(membership_applications.last_name)'))))),
                 SelectFilter::make('source')
                     ->label('Eingegangen per')
                     ->options(MembershipApplication::SOURCES),

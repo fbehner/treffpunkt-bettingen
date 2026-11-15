@@ -2,6 +2,12 @@
 <x-mail::message>
 # Neues Beitrittsgesuch
 
+@if ($a->hasPossibleDuplicates())
+<x-mail::panel>
+**Achtung, mögliches Duplikat:** Es gibt bereits ein Gesuch oder ein Mitglied mit derselben E-Mail-Adresse oder demselben Namen. Bitte im Backoffice prüfen.
+</x-mail::panel>
+@endif
+
 <x-mail::table>
 | | |
 |:--|:--|
