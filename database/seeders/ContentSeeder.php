@@ -77,23 +77,34 @@ class ContentSeeder extends Seeder
     }
 
     /**
-     * Seiten aus der ersten Version, die noch unbearbeitete Platzhalter
-     * enthalten, durch die neuen Inhalte ersetzen bzw. ausblenden.
+     * Seiten aus der ersten Version, die nie bearbeitet wurden (Text exakt wie
+     * damals angelegt), durch die neuen Inhalte ersetzen bzw. ausblenden.
+     * Sobald jemand den Text geändert hat, bleibt er unangetastet.
      */
     private function retirePlaceholders(): void
     {
         $definitions = $this->pageDefinitions();
 
         Page::query()->where('slug', 'ueber-uns')
-            ->where('body', 'like', '%[Hier kurz beschreiben%')
+            ->where('body', self::V1_UEBER_UNS)
             ->update(['is_published' => false, 'show_in_nav' => false]);
 
-        foreach (['impressum' => '[Vereinsname]', 'datenschutz' => '[Datenschutzerklärung'] as $slug => $marker) {
+        foreach (['impressum' => self::V1_IMPRESSUM, 'datenschutz' => self::V1_DATENSCHUTZ] as $slug => $original) {
             Page::query()->where('slug', $slug)
-                ->where('body', 'like', '%'.$marker.'%')
+                ->where('body', $original)
                 ->update(['body' => $definitions[$slug]['body']]);
         }
     }
+
+    /** Platzhaltertexte der ersten Version (nur zum Vergleich). */
+    private const V1_UEBER_UNS = '<p>Wir sind ein Verein, der in Bettingen einen Ort für Begegnung schaffen will: ein Café und einen Treffpunkt für alle Generationen.</p>'
+        .'<h2>Was wir vorhaben</h2><p>[Hier kurz beschreiben: Wer seid ihr, seit wann gibt es den Verein, was ist der Stand der Planung?]</p>'
+        .'<h2>Mitmachen</h2><p>[Hier beschreiben, wie man sich einbringen kann.]</p>';
+
+    private const V1_IMPRESSUM = '<h2>Verantwortlich für den Inhalt</h2><p>[Vereinsname]<br>[Strasse Nr.]<br>[PLZ] Bettingen<br>Schweiz</p>'
+        .'<p>E-Mail: [E-MAIL]</p><p>Vertreten durch: [Name, Funktion im Vorstand]</p>';
+
+    private const V1_DATENSCHUTZ = '<p>[Datenschutzerklärung nach dem Schweizer Datenschutzgesetz (revDSG) – vor der Veröffentlichung ergänzen. Sie muss u. a. nennen: wer verantwortlich ist, welche Daten erhoben werden (z. B. bei Anmeldung und Raumreservierung), wozu, wie lange sie gespeichert werden, wo die Website gehostet ist (green.ch, Schweiz) und welche Rechte Betroffene haben.]</p>';
 
     private function posts(): void
     {

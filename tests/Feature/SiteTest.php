@@ -108,15 +108,22 @@ class SiteTest extends TestCase
         $this->assertSame(9, Offer::count());
     }
 
-    public function test_alte_platzhalterseiten_werden_ersetzt(): void
+    public function test_alte_platzhalterseiten_werden_nur_unbearbeitet_ersetzt(): void
     {
-        Page::where('slug', 'datenschutz')->update(['body' => '<p>[Datenschutzerklärung – ergänzen]</p>']);
-        Page::create(['title' => 'Über uns', 'slug' => 'ueber-uns', 'body' => '<p>[Hier kurz beschreiben: …]</p>', 'is_published' => true, 'show_in_nav' => true]);
+        $v1 = '<p>[Datenschutzerklärung nach dem Schweizer Datenschutzgesetz (revDSG) – vor der Veröffentlichung ergänzen. Sie muss u. a. nennen: wer verantwortlich ist, welche Daten erhoben werden (z. B. bei Anmeldung und Raumreservierung), wozu, wie lange sie gespeichert werden, wo die Website gehostet ist (green.ch, Schweiz) und welche Rechte Betroffene haben.]</p>';
 
+        // Unbearbeitet → wird ersetzt.
+        Page::where('slug', 'datenschutz')->update(['body' => $v1]);
         $this->seed(ContentSeeder::class);
-
         $this->assertStringContainsString('Welche Daten wir bearbeiten', Page::where('slug', 'datenschutz')->value('body'));
-        $this->assertFalse(Page::where('slug', 'ueber-uns')->value('is_published'));
+
+        // Bearbeitet, auch wenn der Platzhalter noch drinsteht → bleibt.
+        $edited = '<p>Eigener Text</p>'.$v1;
+        Page::where('slug', 'datenschutz')->update(['body' => $edited]);
+        Page::where('slug', 'impressum')->update(['body' => '<p>[Vereinsname] – teilweise ausgefüllt</p>']);
+        $this->seed(ContentSeeder::class);
+        $this->assertSame($edited, Page::where('slug', 'datenschutz')->value('body'));
+        $this->assertSame('<p>[Vereinsname] – teilweise ausgefüllt</p>', Page::where('slug', 'impressum')->value('body'));
     }
 
     public function test_aktuelles_zeigt_termine_und_beitraege(): void
