@@ -96,6 +96,25 @@ class Membership extends Model
         return $names ?: '–';
     }
 
+    /**
+     * Ausstehender Gönnerbeitrag: in noch unbezahlten Jahresbeiträgen enthalten,
+     * oder – solange noch kein Jahresbeitrag erzeugt wurde – im Gesuch zugesagt.
+     */
+    public function openDonation(): int
+    {
+        if ($this->fees->isEmpty()) {
+            return (int) $this->application?->donation;
+        }
+
+        return (int) $this->fees->whereNull('paid_at')->sum('donation');
+    }
+
+    /** true = nur zugesagt (noch kein Jahresbeitrag erzeugt). */
+    public function donationOnlyPledged(): bool
+    {
+        return $this->fees->isEmpty() && (int) $this->application?->donation > 0;
+    }
+
     /** Stimmberechtigte Personen an der GV (ab 16; Erwachsene ohne Geburtsdatum zählen mit). */
     public function votingCount(): int
     {

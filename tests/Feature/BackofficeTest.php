@@ -2,13 +2,18 @@
 
 namespace Tests\Feature;
 
+use App\Filament\Backoffice\Resources\MembershipApplications\Pages\ListMembershipApplications;
+use App\Filament\Backoffice\Resources\MembershipFees\Pages\ListMembershipFees;
+use App\Filament\Backoffice\Resources\Memberships\Pages\ListMemberships;
 use App\Models\Membership;
 use App\Models\MembershipApplication;
 use App\Models\MembershipFee;
 use App\Models\User;
 use App\Support\Csv;
+use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 class BackofficeTest extends TestCase
@@ -156,5 +161,69 @@ class BackofficeTest extends TestCase
     {
         $this->assertSame("'=HYPERLINK(1)", Csv::safe('=HYPERLINK(1)'));
         $this->assertSame('Muster', Csv::safe('Muster'));
+    }
+
+    public function test_offener_goennerbeitrag(): void
+    {
+        $m = $this->application(['donation' => 40])->accept(Carbon::parse('2026-12-01'));
+        $ohne = $this->application(['email' => 'b@example.test'])->accept(Carbon::parse('2026-12-01'));
+
+        // Zugesagt im Gesuch, noch kein Jahresbeitrag erzeugt.
+        $this->assertSame(40, $m->openDonation());
+        $this->assertTrue($m->donationOnlyPledged());
+        $this->assertSame(0, $ohne->openDonation());
+
+        // Im offenen Jahresbeitrag enthalten.
+        MembershipFee::generateFor(2027);
+        $m->refresh();
+        $this->assertSame(40, $m->openDonation());
+        $this->assertFalse($m->donationOnlyPledged());
+
+        // Bezahlt → nichts mehr offen.
+        $m->fees()->update(['paid_at' => '2027-01-20']);
+        $this->assertSame(0, $m->refresh()->openDonation());
+
+        // Filter in der Liste.
+        Filament::setCurrentPanel(Filament::getPanel('backoffice'));
+        $this->actingAs(User::factory()->create(['roles' => ['mitglieder']]));
+        $offen = $this->application(['email' => 'c@example.test', 'donation' => 25])->accept(Carbon::parse('2026-12-01'));
+        Livewire::test(ListMemberships::class)
+            ->assertSee('Gönner offen')
+            ->filterTable('open_donation')
+            ->assertCanSeeTableRecords([$offen])
+            ->assertCanNotSeeTableRecords([$m, $ohne]);
+    }
+
+    public function test_alle_filter_in_den_listen_funktionieren(): void
+    {
+        Filament::setCurrentPanel(Filament::getPanel('backoffice'));
+        $this->actingAs(User::factory()->create(['roles' => ['mitglieder']]));
+        $this->travelTo('2026-11-15');
+        $this->application(['type' => 'jugend', 'birthdate' => '2008-01-01'])->accept(now());
+        MembershipFee::generateFor(2027);
+
+        $lists = [
+            ListMemberships::class => ['transition', 'open_fees', 'open_donation'],
+            ListMembershipFees::class => [],
+            ListMembershipApplications::class => ['duplicates'],
+        ];
+
+        foreach ($lists as $page => $filters) {
+            $test = Livewire::test($page)->assertOk();
+            foreach ($filters as $filter) {
+                $test->filterTable($filter)->assertOk()->resetTableFilters();
+            }
+        }
+
+        Livewire::test(ListMemberships::class)
+            ->filterTable('transition')
+            ->assertSee('Wechsel');
+        Livewire::test(ListMembershipFees::class)
+            ->filterTable('paid', false)->assertOk()
+            ->filterTable('paid', true)->assertOk()
+            ->filterTable('year', 2027)->assertOk();
+        Livewire::test(ListMemberships::class)
+            ->filterTable('active', false)->assertOk()
+            ->filterTable('type', 'jugend')->assertOk();
     }
 }

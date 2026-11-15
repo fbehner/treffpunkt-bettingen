@@ -28,7 +28,7 @@ class MembershipsTable
     public static function configure(Table $table): Table
     {
         return $table
-            ->modifyQueryUsing(fn (Builder $query) => $query->with(['people', 'fees']))
+            ->modifyQueryUsing(fn (Builder $query) => $query->with(['people', 'fees', 'application']))
             ->defaultSort('number')
             ->columns([
                 TextColumn::make('number')
@@ -54,6 +54,17 @@ class MembershipsTable
                     ->prefix('CHF ')
                     ->alignEnd()
                     ->sortable(),
+                TextColumn::make('open_donation')
+                    ->label('Gönner offen')
+                    ->state(fn (Membership $record) => $record->openDonation() ?: null)
+                    ->prefix('CHF ')
+                    ->description(fn (Membership $record) => $record->openDonation() > 0
+                        ? ($record->donationOnlyPledged() ? 'zugesagt' : 'mit Jahresbeitrag')
+                        : null)
+                    ->tooltip('Gönnerbeitrag, der noch nicht bezahlt ist – im Gesuch zugesagt oder in einem offenen Jahresbeitrag enthalten')
+                    ->color('warning')
+                    ->placeholder('–')
+                    ->alignEnd(),
                 TextColumn::make('zip_city')
                     ->label('Ort')
                     ->toggleable(isToggledHiddenByDefault: true),
@@ -108,19 +119,25 @@ class MembershipsTable
                     ->options(MembershipType::options()),
                 Filter::make('transition')
                     ->label('Altersübergang fällig')
-                    ->query(fn (Builder $q) => $q->where(fn (Builder $w) => $w
+                    ->query(fn (Builder $query) => $query->where(fn (Builder $w) => $w
                         ->where(fn (Builder $k) => $k->where('type', 'kind')->whereHas('people', fn (Builder $p) => self::olderThan($p, 16)))
                         ->orWhere(fn (Builder $j) => $j->where('type', 'jugend')->whereHas('people', fn (Builder $p) => self::olderThan($p, 18))))),
+                Filter::make('open_donation')
+                    ->label('Mit offenem Gönnerbeitrag')
+                    ->query(fn (Builder $query) => $query->where(fn (Builder $w) => $w
+                        ->whereHas('fees', fn (Builder $f) => $f->whereNull('paid_at')->where('donation', '>', 0))
+                        ->orWhere(fn (Builder $p) => $p->whereDoesntHave('fees')
+                            ->whereHas('application', fn (Builder $a) => $a->where('donation', '>', 0))))),
                 Filter::make('open_fees')
                     ->label('Mit offenen Beiträgen')
-                    ->query(fn (Builder $q) => $q->whereHas('fees', fn (Builder $f) => $f->whereNull('paid_at'))),
+                    ->query(fn (Builder $query) => $query->whereHas('fees', fn (Builder $f) => $f->whereNull('paid_at'))),
             ])
             ->headerActions([
                 ActionGroup::make([
                     Action::make('exportMembers')
                         ->label('Mitgliederliste (CSV)')
                         ->icon(Heroicon::OutlinedArrowDownTray)
-                        ->action(fn () => self::exportMembers(Membership::query()->active()->with('people')->orderBy('number')->get())),
+                        ->action(fn () => self::exportMembers(Membership::query()->active()->with(['people', 'fees', 'application'])->orderBy('number')->get())),
                     Action::make('exportVoters')
                         ->label('Stimmberechtigte für die GV (CSV)')
                         ->icon(Heroicon::OutlinedClipboardDocumentList)
@@ -162,7 +179,7 @@ class MembershipsTable
                     BulkAction::make('exportSelected')
                         ->label('Auswahl exportieren (CSV)')
                         ->icon(Heroicon::OutlinedArrowDownTray)
-                        ->action(fn (Collection $records) => self::exportMembers($records->load('people'))),
+                        ->action(fn (Collection $records) => self::exportMembers($records->load(['people', 'fees', 'application']))),
                 ]),
             ]);
     }
@@ -184,6 +201,7 @@ class MembershipsTable
                 'Nr.' => $m->number,
                 'Art' => $m->typeInfo()->label(),
                 'Beitrag CHF' => $m->fee,
+                'Gönnerbeitrag offen CHF' => $m->openDonation() ?: '',
                 'Verein/Institution' => $m->organisation,
                 'Anrede/Name' => $m->displayName(),
                 'Vorname' => $contact?->first_name,
