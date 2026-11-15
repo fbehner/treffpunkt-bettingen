@@ -2,14 +2,19 @@
 
 namespace Tests\Feature;
 
+use App\Filament\Backoffice\Resources\MembershipApplications\Pages\EditMembershipApplication;
 use App\Filament\Backoffice\Resources\MembershipApplications\Pages\ListMembershipApplications;
 use App\Filament\Backoffice\Resources\MembershipFees\Pages\ListMembershipFees;
+use App\Filament\Backoffice\Resources\Memberships\Pages\EditMembership;
 use App\Filament\Backoffice\Resources\Memberships\Pages\ListMemberships;
+use App\Mail\MembershipWelcome;
 use App\Models\Membership;
 use App\Models\MembershipApplication;
 use App\Models\MembershipFee;
+use App\Models\SentMail;
 use App\Models\User;
 use App\Support\Csv;
+use App\Support\MembershipMails;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
@@ -225,5 +230,47 @@ class BackofficeTest extends TestCase
         Livewire::test(ListMemberships::class)
             ->filterTable('active', false)->assertOk()
             ->filterTable('type', 'jugend')->assertOk();
+    }
+
+    public function test_willkommens_mail_beim_aufnehmen_und_nachtraeglich(): void
+    {
+        config(['mail.default' => 'array']);
+        Filament::setCurrentPanel(Filament::getPanel('backoffice'));
+        $this->actingAs(User::factory()->create(['roles' => ['mitglieder']]));
+
+        // Aufnehmen mit Häkchen (Standard) → Mail an das Mitglied.
+        $a = $this->application(['email' => 'valentin@example.test']);
+        Livewire::test(EditMembershipApplication::class, ['record' => $a->getKey()])
+            ->callAction('accept', ['number' => 5, 'joined_at' => '15.11.2026', 'send_welcome' => true])
+            ->assertHasNoActionErrors();
+
+        $log = SentMail::where('mailable', MembershipWelcome::class)->sole();
+        $this->assertSame('valentin@example.test', $log->to);
+        $this->assertSame('mitglieder', $log->category);
+        $this->assertStringContainsString('Mitgliedernummer:</strong> 5', $log->html);
+
+        // Ohne Häkchen → keine Mail.
+        $b = $this->application(['email' => 'still@example.test']);
+        Livewire::test(EditMembershipApplication::class, ['record' => $b->getKey()])
+            ->callAction('accept', ['number' => 6, 'joined_at' => '15.11.2026', 'send_welcome' => false])
+            ->assertHasNoActionErrors();
+        $this->assertSame(1, SentMail::where('mailable', MembershipWelcome::class)->count());
+
+        // Nachträglich beim Mitglied senden.
+        $m = Membership::where('number', 6)->sole();
+        Livewire::test(EditMembership::class, ['record' => $m->getKey()])
+            ->callAction('welcome')
+            ->assertHasNoActionErrors();
+        $this->assertSame(1, SentMail::where('mailable', MembershipWelcome::class)->where('to', 'still@example.test')->count());
+    }
+
+    public function test_willkommens_mail_bei_minderjaehrigen_mit_kopie_an_eltern(): void
+    {
+        $m = $this->application([
+            'type' => 'jugend', 'birthdate' => '2009-06-01', 'email' => 'noah@example.test',
+            'guardian_name' => 'Eva', 'guardian_email' => 'eva@example.test',
+        ])->accept(now());
+
+        $this->assertSame(['to' => 'noah@example.test', 'cc' => 'eva@example.test'], MembershipMails::welcomeRecipients($m->load('application')));
     }
 }

@@ -6,8 +6,10 @@ use App\Filament\Backoffice\Forms\SwissDate;
 use App\Filament\Backoffice\Resources\Memberships\MembershipResource;
 use App\Models\Membership;
 use App\Models\MembershipApplication;
+use App\Support\MembershipMails;
 use Filament\Actions\Action;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 use Filament\Notifications\Notification;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Support\Carbon;
@@ -39,6 +41,10 @@ class AcceptApplicationAction
                     ->default(fn () => Membership::nextNumber())
                     ->rule(Rule::unique('memberships', 'number'))
                     ->validationMessages(['unique' => 'Diese Nummer ist schon vergeben.']),
+                Toggle::make('send_welcome')
+                    ->label('Willkommens-E-Mail senden')
+                    ->helperText(fn (MembershipApplication $record) => 'An '.$record->email.($record->guardian_email ? ', Kopie an '.$record->guardian_email : '').' – mit Mitgliedernummer und Beitrag.')
+                    ->default(true),
                 SwissDate::make('joined_at')
                     ->label('Eintritt (Beschluss des Vorstands)')
                     ->default(now()->format('d.m.Y'))
@@ -47,8 +53,16 @@ class AcceptApplicationAction
             ->action(function (MembershipApplication $record, array $data, Action $action) {
                 $membership = $record->accept(Carbon::parse($data['joined_at']), (int) $data['number']);
 
+                $mailNote = null;
+                if ($data['send_welcome'] ?? false) {
+                    $mailNote = MembershipMails::sendWelcome($membership)
+                        ? 'Willkommens-E-Mail gesendet.'
+                        : 'Die Willkommens-E-Mail konnte nicht gesendet werden – bitte später beim Mitglied erneut versuchen.';
+                }
+
                 Notification::make()
                     ->title('Aufgenommen als Mitglied Nr. '.$membership->number)
+                    ->body($mailNote)
                     ->success()
                     ->send();
 

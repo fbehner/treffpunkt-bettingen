@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Mail\AccessGranted;
 use App\Mail\GuardianConfirmation;
 use App\Mail\MembershipReceived;
+use App\Mail\MembershipWelcome;
 use App\Mail\NewMembershipApplication;
 use App\Mail\NewUserRegistered;
 use App\Mail\UserInvitation;
@@ -37,6 +38,7 @@ class SentMail extends Model
         MembershipReceived::class => 'mitglieder',
         GuardianConfirmation::class => 'mitglieder',
         NewMembershipApplication::class => 'mitglieder',
+        MembershipWelcome::class => 'mitglieder',
     ];
 
     public const LABELS = [
@@ -46,6 +48,7 @@ class SentMail extends Model
         MembershipReceived::class => 'Eingangsbestätigung Gesuch',
         GuardianConfirmation::class => 'Bestätigung Erziehungsberechtigte',
         NewMembershipApplication::class => 'Meldung: neues Gesuch',
+        MembershipWelcome::class => 'Aufnahmebestätigung',
     ];
 
     protected $fillable = ['category', 'mailable', 'to', 'subject', 'html', 'sent_at'];

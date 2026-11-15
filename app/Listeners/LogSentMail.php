@@ -37,7 +37,9 @@ class LogSentMail
             SentMail::create([
                 'category' => SentMail::categoryFor($mailable, $notification),
                 'mailable' => $mailable ?? $notification,
-                'to' => collect($message->getTo())->map(fn (Address $a) => $a->getAddress())->join(', '),
+                'to' => collect($message->getTo())->map(fn (Address $a) => $a->getAddress())
+                    ->merge(collect($message->getCc())->map(fn (Address $a) => $a->getAddress().' (Kopie)'))
+                    ->join(', '),
                 'subject' => $message->getSubject(),
                 'html' => SentMail::redact($html),
                 'sent_at' => now(),
