@@ -15,6 +15,7 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+
         // Menü- und Fusszeilen-Links für das Website-Layout.
         View::composer('components.layouts.site', function ($view) {
             $published = Page::query()->published()

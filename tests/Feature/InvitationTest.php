@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Filament\Resources\Invitations\Pages\CreateInvitation;
+use App\Filament\Resources\Invitations\Pages\ListInvitations;
 use App\Filament\Resources\Users\Pages\EditUser;
 use App\Mail\AccessGranted;
 use App\Mail\NewUserRegistered;
@@ -152,5 +153,22 @@ class InvitationTest extends TestCase
 
         $this->assertNotSame($token, Invitation::sole()->token_hash);
         $this->assertSame(hash('sha256', $token), Invitation::sole()->token_hash);
+    }
+
+    public function test_erneut_senden_macht_abgelaufene_einladung_wieder_gueltig(): void
+    {
+        $this->invite();
+        $this->travel(Invitation::VALID_DAYS + 1)->days();
+        $invitation = Invitation::sole();
+        $this->assertSame('abgelaufen', $invitation->status());
+
+        $this->actingAs($this->admin);
+        Livewire::test(ListInvitations::class)
+            ->callTableAction('resend', $invitation)
+            ->assertHasNoTableActionErrors()
+            ->assertSee('offen');
+
+        $this->assertSame('offen', $invitation->fresh()->status());
+        Mail::assertSent(UserInvitation::class, 2);
     }
 }

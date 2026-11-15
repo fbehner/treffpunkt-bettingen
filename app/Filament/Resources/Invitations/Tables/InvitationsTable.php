@@ -2,7 +2,10 @@
 
 namespace App\Filament\Resources\Invitations\Tables;
 
+use App\Filament\Resources\SentMails\SentMailResource;
+use App\Mail\UserInvitation;
 use App\Models\Invitation;
+use App\Models\SentMail;
 use App\Support\Invitations;
 use Filament\Actions\Action;
 use Filament\Actions\DeleteAction;
@@ -13,6 +16,16 @@ use Filament\Tables\Table;
 
 class InvitationsTable
 {
+    /** Zuletzt versendete Einladungs-E-Mail an diese Adresse. */
+    private static function lastMail(Invitation $invitation): ?SentMail
+    {
+        return SentMail::query()
+            ->where('mailable', UserInvitation::class)
+            ->where('to', $invitation->email)
+            ->latest('sent_at')
+            ->first();
+    }
+
     public static function configure(Table $table): Table
     {
         return $table
@@ -34,6 +47,14 @@ class InvitationsTable
                     }),
             ])
             ->recordActions([
+                Action::make('mail')
+                    ->label('E-Mail ansehen')
+                    ->icon(Heroicon::OutlinedEnvelopeOpen)
+                    ->color('gray')
+                    ->url(fn (Invitation $record) => ($mail = self::lastMail($record))
+                        ? SentMailResource::getUrl('view', ['record' => $mail])
+                        : null)
+                    ->visible(fn (Invitation $record) => self::lastMail($record) !== null),
                 Action::make('resend')
                     ->label('Erneut senden')
                     ->icon(Heroicon::OutlinedPaperAirplane)
