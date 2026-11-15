@@ -98,3 +98,35 @@ reicht für einen Verein.
 
 Die Inhalte liegen in der MySQL-Datenbank. Regelmässig über das Kundenportal
 (phpMyAdmin → Export) sichern – oder per Cronjob mit `mysqldump`.
+
+## Neue Version von Hand einspielen (ZIP-Paket)
+
+Wenn `scripts/deploy.sh` nicht genutzt wird, sondern ein fertiges Paket
+`treffpunkt-bettingen-upload.zip` per SFTP ins Home-Verzeichnis geladen wurde:
+
+```bash
+cd ~
+mv app app-alt                                   # alte Version aufheben
+unzip -q treffpunkt-bettingen-upload.zip         # neue Version nach ~/app
+cp app-alt/.env app/                             # Konfiguration übernehmen
+cp -a app-alt/storage/. app/storage/             # Uploads, Logs übernehmen
+cd app
+chmod -R u+rwX storage bootstrap/cache
+php artisan migrate --force
+php artisan db:seed --class=ContentSeeder --force
+php artisan storage:link
+php artisan optimize:clear && php artisan optimize && php artisan filament:optimize
+```
+
+Läuft alles, kann `~/app-alt` gelöscht werden. Falls etwas schiefgeht:
+`mv ~/app ~/app-neu && mv ~/app-alt ~/app` stellt die alte Version wieder her
+(die Datenbank-Änderungen sind abwärtskompatibel).
+
+## E-Mail-Versand
+
+Beitrittsgesuche verschicken E-Mails (Bestätigung, Meldung an den Vorstand,
+Bestätigungslink für Erziehungsberechtigte). Dafür in der `.env` das Postfach
+`info@treffpunkt-bettingen.ch` von green.ch eintragen (`MAIL_HOST`,
+`MAIL_USERNAME`, `MAIL_PASSWORD`, siehe `.env.production.example`) und danach
+`php artisan optimize` ausführen. Ohne funktionierenden Versand werden Gesuche
+trotzdem gespeichert; der Fehler steht in `storage/logs/`.

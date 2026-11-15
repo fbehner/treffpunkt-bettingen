@@ -6,7 +6,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{{ $title ? $title.' – '.$s['site_name'] : $s['site_name'] }}</title>
-    <meta name="description" content="{{ $description ?? $s['intro'] }}">
+    <meta name="description" content="{{ $description ?: $s['meta_description'] }}">
     <meta name="theme-color" content="#f3eadf">
     <link rel="icon" href="{{ asset('favicon.svg') }}" type="image/svg+xml">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -14,36 +14,52 @@
 <body class="flex min-h-screen flex-col">
     <a href="#inhalt" class="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded focus:bg-dunkel focus:px-4 focus:py-2 focus:text-white">Zum Inhalt springen</a>
 
+    @if (filled($s['banner_text']))
+        <div class="bg-gruen text-white">
+            <p class="container-site flex flex-wrap items-center justify-center gap-x-3 gap-y-1 py-2.5 text-center text-[15px]">
+                @if (filled($s['banner_label']))
+                    <span class="rounded bg-senf px-2 py-0.5 text-xs font-bold uppercase tracking-wider text-dunkel">{{ $s['banner_label'] }}</span>
+                @endif
+                <span>{{ $s['banner_text'] }}</span>
+                @if (filled($s['banner_link']))
+                    <a href="{{ $s['banner_link'] }}" class="font-semibold text-white hover:text-white">Mehr erfahren</a>
+                @endif
+            </p>
+        </div>
+    @endif
+
     <header class="container-site flex flex-wrap items-center justify-between gap-x-6 gap-y-3 py-5">
         <a href="{{ route('home') }}" class="flex items-center gap-3 text-dunkel no-underline hover:text-dunkel">
             <x-symbol name="cup" class="size-7 text-rost" />
             <span class="kicker">{{ $s['site_name'] }}</span>
         </a>
 
-        @if ($navPages->isNotEmpty())
-            <button type="button" class="-mr-2 inline-flex size-11 items-center justify-center rounded-lg md:hidden" data-nav-toggle aria-expanded="false" aria-controls="hauptmenu" aria-label="Menü">
-                <x-symbol name="menu" class="size-7" />
-            </button>
-            <nav id="hauptmenu" data-nav aria-label="Hauptmenü" class="w-full flex-col gap-1 md:w-auto md:flex-row md:gap-6">
-                @foreach ($navPages as $navPage)
-                    <a href="{{ route('page.show', $navPage->slug) }}"
-                       @if (request()->is($navPage->slug)) aria-current="page" @endif
-                       class="py-2 font-medium text-dunkel no-underline hover:text-rost aria-[current=page]:text-rost">{{ $navPage->title }}</a>
-                @endforeach
-            </nav>
-        @endif
+        <button type="button" class="-mr-2 inline-flex size-11 items-center justify-center rounded-lg md:hidden" data-nav-toggle aria-expanded="false" aria-controls="hauptmenu" aria-label="Menü">
+            <x-symbol name="menu" class="size-7" />
+        </button>
+        <nav id="hauptmenu" data-nav aria-label="Hauptmenü" class="w-full flex-col gap-1 pb-2 md:w-auto md:flex-row md:items-center md:gap-7 md:pb-0">
+            @foreach ($navPages as $navPage)
+                <a href="{{ route('page.show', $navPage->slug) }}"
+                   @if (request()->is($navPage->slug)) aria-current="page" @endif
+                   class="py-2 font-medium text-dunkel no-underline hover:text-rost aria-[current=page]:text-rost aria-[current=page]:underline">{{ $navPage->title }}</a>
+            @endforeach
+            <a href="{{ route('posts.index') }}"
+               @if (request()->is('aktuelles*')) aria-current="page" @endif
+               class="py-2 font-medium text-dunkel no-underline hover:text-rost aria-[current=page]:text-rost aria-[current=page]:underline">Aktuelles</a>
+            <a href="{{ route('membership.create') }}" class="button mt-2 md:mt-0 md:min-h-0 md:px-4 md:py-2.5">Mitglied werden</a>
+        </nav>
     </header>
 
     <main id="inhalt" class="flex-1">
         {{ $slot }}
     </main>
 
-    <footer class="mt-24 bg-dunkel text-creme">
+    <footer class="bg-dunkel text-creme">
         <div class="container-site grid gap-10 py-14 sm:grid-cols-2 lg:grid-cols-3">
             <div>
                 <p class="display text-2xl text-white">{{ $s['site_name'] }}</p>
                 @if ($s['footer_text'])
-                    <p class="mt-3 max-w-xs text-creme/80">{{ $s['footer_text'] }}</p>
+                    <p class="mt-3 max-w-xs text-creme/85">{{ $s['footer_text'] }}</p>
                 @endif
             </div>
             @if ($s['address'] || $s['contact_email'])
@@ -57,13 +73,15 @@
                     @endif
                 </div>
             @endif
-            @if ($footerPages->isNotEmpty())
-                <nav aria-label="Rechtliches" class="flex flex-col items-start gap-2">
-                    @foreach ($footerPages as $footerPage)
-                        <a href="{{ route('page.show', $footerPage->slug) }}" class="text-creme hover:text-white">{{ $footerPage->title }}</a>
-                    @endforeach
-                </nav>
-            @endif
+            <nav aria-label="Weitere Links" class="flex flex-col items-start gap-2">
+                <a href="{{ route('membership.create') }}" class="text-creme hover:text-white">Mitglied werden</a>
+                @if (filled($s['statutes_file'] ?? null))
+                    <a href="{{ \App\Support\Ui::file($s['statutes_file']) }}" class="text-creme hover:text-white">Statuten (PDF)</a>
+                @endif
+                @foreach ($footerPages as $footerPage)
+                    <a href="{{ route('page.show', $footerPage->slug) }}" class="text-creme hover:text-white">{{ $footerPage->title }}</a>
+                @endforeach
+            </nav>
         </div>
     </footer>
 </body>

@@ -26,6 +26,16 @@ Vereinswebsite **treffpunkt-bettingen.ch**. Der Betreuer (Frank) lässt die Webs
 
 ## Inhalte
 - Inhalte gehören in die Datenbank (editierbar in `/admin`), nicht hart in Views.
+- Seiten bestehen aus Bausteinen (`Page.blocks`, Filament Builder). Neuer
+  Baustein: Block in `PageBlocks.php` + Vorlage `resources/views/blocks/<typ>.blade.php`.
+- Startseite = Seite mit Slug `startseite` (Route `/`).
+- Hochgeladene Dateien liegen auf der Disk `public` (`bilder/`, `dokumente/`),
+  Ausgabe über `App\Support\Ui::file()`.
+- Mitgliedschaftsarten und Altersgrenzen: `App\Support\MembershipType`;
+  Beiträge in den Einstellungen. Gesuche (Personendaten) nur für Admins.
+- E-Mail-Versand nie blockierend: Fehler loggen, Gesuch trotzdem speichern.
+- Ton der Website: „ihr/euch“ (wie auf dem Plakat). E-Mails an
+  Erziehungsberechtigte: „Sie“.
 - `ContentSeeder` legt nur fehlende Startinhalte an und überschreibt nie
   Bearbeitetes – er läuft bei jedem Deploy.
 - Rollen: `admin` (alles), `redaktion` (Inhalte). Benutzerverwaltung nur admin.

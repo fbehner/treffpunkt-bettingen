@@ -17,7 +17,9 @@ class AppServiceProvider extends ServiceProvider
     {
         // Menü- und Fusszeilen-Links für das Website-Layout.
         View::composer('components.layouts.site', function ($view) {
-            $published = Page::query()->published()->get(['title', 'slug', 'show_in_nav', 'show_in_footer']);
+            $published = Page::query()->published()
+                ->where('slug', '!=', Page::HOME_SLUG)
+                ->get(['title', 'slug', 'show_in_nav', 'show_in_footer']);
 
             $view->with([
                 'navPages' => $published->where('show_in_nav', true)->values(),

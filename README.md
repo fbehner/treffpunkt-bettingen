@@ -11,12 +11,28 @@ Website des Vereins Treffpunkt Bettingen: **treffpunkt-bettingen.ch**
 
 | Bereich | Wer | Inhalt |
 | --- | --- | --- |
-| Startseite & Kontakt | Redaktion, Admin | Titel, Einleitung, Abschlusssatz, Kontakt, Fusszeile |
-| Angebote | Redaktion, Admin | Die farbigen Kacheln: Titel, Text, Farbe, Symbol, Reihenfolge |
-| Seiten | Redaktion, Admin | Freie Seiten (Über uns, Impressum, Datenschutz …) |
+| Seiten | Redaktion, Admin | Startseite, Das Haus, Projekt, Verein, Impressum, Datenschutz – aus Bausteinen zusammengesetzt |
+| Angebote | Redaktion, Admin | Die farbigen Kacheln „Das alles könnte hier stattfinden“ |
+| Aktuelles | Redaktion, Admin | Neuigkeiten und Termine |
+| Einstellungen | Redaktion, Admin | Hinweisband, Kontakt, Statuten-PDF, Mitgliederbeiträge |
+| Beitrittsgesuche | nur Admin | Online-Gesuche, Status, Export als CSV |
 | Benutzer | nur Admin | Zugänge für Vereinsmitglieder, Rollen, deaktivieren |
 
-Geplant: Mitgliederanmeldung, Raumreservierung.
+### Bausteine für Seiten
+
+Titelbereich mit Bild · Text · Bild mit Text · Karten mit Bild · Farbige Felder ·
+Zahlen & Fakten · Zeitstrahl · Angebots-Kacheln · Verein & Mitgliedschaft ·
+Hinweis mit Knopf · Download. Vorlagen in `resources/views/blocks/`, Formular in
+`app/Filament/Resources/Pages/Schemas/PageBlocks.php`.
+
+### Beitrittsgesuch (`/mitglied-werden`)
+
+Mitgliedschaftsarten in `app/Support/MembershipType.php` (Kind 12–15, Jugend
+16–17). Bei Minderjährigen bestätigt eine erziehungsberechtigte Person per
+E-Mail-Link. E-Mails gehen an die antragstellende Person und an die
+Kontakt-E-Mail aus den Einstellungen.
+
+Geplant: Raumreservierung.
 
 ## Lokal entwickeln
 
@@ -46,11 +62,12 @@ scripts/deploy.sh
 ## Aufbau
 
 ```
-app/Models/                 Offer (Kachel), Page (Seite), Setting (Texte), User
+app/Models/                 Offer, Page (mit Bausteinen), Post, MembershipApplication, Setting, User
 app/Filament/               Verwaltungsoberfläche
-app/Http/Controllers/       SiteController – öffentliche Seiten
-resources/views/            home, page, Layout, Symbole (components/symbol.blade.php)
+app/Http/Controllers/       SiteController (Seiten, Aktuelles), MembershipController
+app/Mail/                   E-Mails zum Beitrittsgesuch
+resources/views/            page, blocks/, posts/, membership/, mail/, Layout, Symbole
 resources/css/app.css       Farben und Schriften des Plakats
-database/seeders/           Startinhalte nach dem Plakat
+database/seeders/           Startinhalte aus den Projektunterlagen (+ assets/: Bilder, PDFs)
 scripts/deploy.sh           Veröffentlichung per SSH/rsync
 ```

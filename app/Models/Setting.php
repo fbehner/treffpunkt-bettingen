@@ -6,7 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Cache;
 
 /**
- * Einfache Schlüssel/Wert-Einstellungen (Texte der Startseite, Kontakt …).
+ * Einfache Schlüssel/Wert-Einstellungen (Kontakt, Hinweisband, Beiträge …).
+ * Die Seiteninhalte selbst stehen in den Seiten (Page) als Bausteine.
  */
 class Setting extends Model
 {
@@ -16,19 +17,27 @@ class Setting extends Model
 
     private const CACHE_KEY = 'settings.all';
 
-    /** Standardtexte – entsprechen dem Plakat. */
     public const DEFAULTS = [
         'site_name' => 'Treffpunkt Bettingen',
-        'kicker' => 'Ein Café in Planung',
-        'headline_dark' => 'Ein Ort des',
-        'headline_accent' => "aktiven\nTreffens.",
-        'intro' => 'Die Räumlichkeiten sind ein Treffpunkt für alle. Das alles könnte hier stattfinden:',
-        'closing_dark' => 'Auch für eure',
-        'closing_accent' => 'Ideen.',
-        'closing_text' => 'Ihr habt eine Idee für eine Veranstaltung, einen Kurs oder ein Treffen? Wir freuen uns, davon zu hören.',
-        'contact_email' => '',
-        'address' => '',
-        'footer_text' => 'Ein Verein für Begegnung in Bettingen.',
+        'meta_description' => 'Dorfladen & Café an der Hauptstrasse 85: ein Treffpunkt für ganz Bettingen. Verein Treffpunkt Bettingen.',
+        'contact_email' => 'info@treffpunkt-bettingen.ch',
+        'address' => "Verein Treffpunkt Bettingen\n4126 Bettingen",
+        'footer_text' => 'Von Bettingern für Bettinger.',
+        'statutes_file' => 'dokumente/statuten-treffpunkt-bettingen.pdf',
+
+        // Hinweisband ganz oben (leer = ausgeblendet)
+        'banner_label' => 'Nächster Schritt',
+        'banner_text' => 'Einwohnergemeindeversammlung am 8. Dezember 2026 – Grundsatzentscheid zum Konzept',
+        'banner_link' => '/projekt#stand',
+
+        // Jahresbeiträge in CHF (Beitrittsgesuch)
+        'fee_einzel' => 50,
+        'fee_paar' => 80,
+        'fee_familie' => 80,
+        'fee_jugend' => 20,
+        'fee_kind' => 10,
+        'fee_verein' => 100,
+        'membership_note' => 'Der Mitgliederbeitrag wird jeweils per 1. Januar fällig, erstmals im Januar 2027 – falls das Projekt an der Gemeindeversammlung vom 8. Dezember 2026 bewilligt wird. Andernfalls fällt das Gesuch ohne Kostenfolge dahin.',
     ];
 
     public static function values(): array

@@ -45,7 +45,7 @@ class PagesTable
                 Action::make('view')
                     ->label('Ansehen')
                     ->icon(Heroicon::OutlinedEye)
-                    ->url(fn (Page $record) => route('page.show', $record->slug))
+                    ->url(fn (Page $record) => $record->url())
                     ->openUrlInNewTab()
                     ->visible(fn (Page $record) => $record->is_published),
                 EditAction::make(),

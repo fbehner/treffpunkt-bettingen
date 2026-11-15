@@ -13,7 +13,9 @@ class EditPage extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
-            DeleteAction::make(),
+            // Die Startseite darf nicht gelöscht werden.
+            DeleteAction::make()
+                ->hidden(fn () => $this->record->isHome()),
         ];
     }
 }
