@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Models\Page;
+use Filament\Pages\BasePage;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
@@ -15,6 +16,10 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        // Speichern/Abbrechen bleiben am unteren Bildschirmrand sichtbar –
+        // auch bei langen Formularen (z. B. Familie mit mehreren Personen).
+        BasePage::stickyFormActions();
+
 
         // Menü- und Fusszeilen-Links für das Website-Layout.
         View::composer('components.layouts.site', function ($view) {
