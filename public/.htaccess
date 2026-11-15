@@ -5,6 +5,14 @@
 
     RewriteEngine On
 
+    # Live-Domain: immer https und ohne www (lokal ohne Wirkung).
+    # Zertifikatserneuerung (Let's Encrypt) bleibt über http erreichbar.
+    RewriteCond %{REQUEST_URI} !^/\.well-known/
+    RewriteCond %{HTTP_HOST} ^(www\.)?treffpunkt-bettingen\.ch$ [NC]
+    RewriteCond %{HTTPS} !=on [OR]
+    RewriteCond %{HTTP_HOST} ^www\. [NC]
+    RewriteRule ^ https://treffpunkt-bettingen.ch%{REQUEST_URI} [L,R=301]
+
     # Handle Authorization Header
     RewriteCond %{HTTP:Authorization} .
     RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
