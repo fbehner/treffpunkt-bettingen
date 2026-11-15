@@ -2,6 +2,7 @@
 
 namespace App\Filament\Backoffice\Resources\Memberships\Tables;
 
+use App\Filament\Backoffice\Forms\SwissDate;
 use App\Models\Membership;
 use App\Models\MembershipPerson;
 use App\Support\Csv;
@@ -11,7 +12,6 @@ use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkAction;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\EditAction;
-use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Notifications\Notification;
 use Filament\Support\Icons\Heroicon;
@@ -141,12 +141,10 @@ class MembershipsTable
                     ->modalHeading(fn (Membership $record) => 'Austritt erfassen: '.$record->displayName())
                     ->modalDescription('Laut Statuten ist ein Austritt auf Ende Vereinsjahr möglich. Der Beitrag für das laufende Jahr bleibt geschuldet.')
                     ->schema([
-                        DatePicker::make('left_at')
+                        SwissDate::make('left_at')
                             ->label('Austritt per')
-                            ->default(now()->endOfYear())
-                            ->required()
-                            ->native(false)
-                            ->displayFormat('d.m.Y'),
+                            ->default(now()->endOfYear()->format('d.m.Y'))
+                            ->required(),
                         Select::make('exit_reason')
                             ->label('Grund')
                             ->options(Membership::EXIT_REASONS)

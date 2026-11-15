@@ -2,11 +2,11 @@
 
 namespace App\Filament\Backoffice\Actions;
 
+use App\Filament\Backoffice\Forms\SwissDate;
 use App\Filament\Backoffice\Resources\Memberships\MembershipResource;
 use App\Models\Membership;
 use App\Models\MembershipApplication;
 use Filament\Actions\Action;
-use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Support\Icons\Heroicon;
@@ -39,12 +39,10 @@ class AcceptApplicationAction
                     ->default(fn () => Membership::nextNumber())
                     ->rule(Rule::unique('memberships', 'number'))
                     ->validationMessages(['unique' => 'Diese Nummer ist schon vergeben.']),
-                DatePicker::make('joined_at')
+                SwissDate::make('joined_at')
                     ->label('Eintritt (Beschluss des Vorstands)')
-                    ->default(now())
-                    ->required()
-                    ->native(false)
-                    ->displayFormat('d.m.Y'),
+                    ->default(now()->format('d.m.Y'))
+                    ->required(),
             ])
             ->action(function (MembershipApplication $record, array $data, Action $action) {
                 $membership = $record->accept(Carbon::parse($data['joined_at']), (int) $data['number']);

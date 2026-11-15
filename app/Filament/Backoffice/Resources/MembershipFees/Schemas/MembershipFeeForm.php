@@ -2,8 +2,8 @@
 
 namespace App\Filament\Backoffice\Resources\MembershipFees\Schemas;
 
+use App\Filament\Backoffice\Forms\SwissDate;
 use App\Models\Membership;
-use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Utilities\Set;
@@ -43,11 +43,9 @@ class MembershipFeeForm
                     ->label('Gönnerbeitrag')
                     ->prefix('CHF')
                     ->numeric(),
-                DatePicker::make('paid_at')
+                SwissDate::make('paid_at')
                     ->label('Bezahlt am')
-                    ->helperText('Leer = offen.')
-                    ->native(false)
-                    ->displayFormat('d.m.Y'),
+                    ->helperText('Leer = offen.'),
                 TextInput::make('notes')
                     ->label('Bemerkung')
                     ->columnSpanFull(),

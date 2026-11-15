@@ -2,9 +2,9 @@
 
 namespace App\Filament\Backoffice\Resources\MembershipApplications\Schemas;
 
+use App\Filament\Backoffice\Forms\SwissDate;
 use App\Models\MembershipApplication;
 use App\Support\MembershipType;
-use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -44,10 +44,7 @@ class MembershipApplicationForm
                             ->visible(fn (Get $get) => $get('type') === 'verein'),
                         TextInput::make('first_name')->label('Vorname')->required(),
                         TextInput::make('last_name')->label('Name')->required(),
-                        DatePicker::make('birthdate')
-                            ->label('Geburtsdatum')
-                            ->native(false)
-                            ->displayFormat('d.m.Y')
+                        SwissDate::birthdate()
                             ->visible(fn (Get $get) => in_array($get('type'), ['jugend', 'kind'], true)),
                         Grid::make(2)
                             ->columnSpanFull()
@@ -77,12 +74,10 @@ class MembershipApplicationForm
                             ->default('papier')
                             ->required()
                             ->native(false),
-                        DatePicker::make('received_at')
+                        SwissDate::make('received_at')
                             ->label('Eingangsdatum')
                             ->helperText('Bei Online-Gesuchen automatisch.')
-                            ->default(now())
-                            ->native(false)
-                            ->displayFormat('d.m.Y'),
+                            ->default(now()->format('d.m.Y')),
                         Select::make('status')
                             ->label('Status')
                             ->helperText('„Aufgenommen“ setzt ihr über den Knopf „Aufnehmen“ – so entsteht die Mitgliedschaft.')
@@ -103,19 +98,13 @@ class MembershipApplicationForm
                                 TextInput::make('guardian_name')->label('Name'),
                                 TextInput::make('guardian_email')->label('E-Mail')->email(),
                                 DateTimePicker::make('guardian_confirmed_at')
-                                    ->label('Bestätigt / unterschrieben am')
-                                    ->native(false)
-                                    ->displayFormat('d.m.Y H:i'),
+                                    ->label('Bestätigt / unterschrieben am'),
                             ]),
                         DateTimePicker::make('statutes_accepted_at')
                             ->label('Statuten akzeptiert / unterschrieben am')
-                            ->default(now())
-                            ->native(false)
-                            ->displayFormat('d.m.Y H:i'),
+                            ->default(now()),
                         DateTimePicker::make('created_at')
                             ->label('Erfasst am')
-                            ->native(false)
-                            ->displayFormat('d.m.Y H:i')
                             ->disabled()
                             ->dehydrated(false)
                             ->hiddenOn('create'),

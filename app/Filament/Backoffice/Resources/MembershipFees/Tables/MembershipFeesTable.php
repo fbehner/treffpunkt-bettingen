@@ -2,13 +2,13 @@
 
 namespace App\Filament\Backoffice\Resources\MembershipFees\Tables;
 
+use App\Filament\Backoffice\Forms\SwissDate;
 use App\Models\MembershipFee;
 use App\Support\Csv;
 use Filament\Actions\Action;
 use Filament\Actions\BulkAction;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\EditAction;
-use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Notifications\Notification;
@@ -95,7 +95,7 @@ class MembershipFeesTable
                         ->label('Als bezahlt markieren')
                         ->icon(Heroicon::OutlinedCheckCircle)
                         ->schema([
-                            DatePicker::make('paid_at')->label('Bezahlt am')->default(now())->required()->native(false)->displayFormat('d.m.Y'),
+                            SwissDate::make('paid_at')->label('Bezahlt am')->default(now()->format('d.m.Y'))->required(),
                         ])
                         ->action(function (Collection $records, array $data) {
                             $records->each->update(['paid_at' => $data['paid_at']]);
@@ -117,10 +117,10 @@ class MembershipFeesTable
             ->color('success')
             ->visible(fn (MembershipFee $record) => $record->paid_at === null)
             ->schema([
-                DatePicker::make('paid_at')->label('Bezahlt am')->default(now())->required()->native(false)->displayFormat('d.m.Y'),
+                SwissDate::make('paid_at')->label('Bezahlt am')->default(now()->format('d.m.Y'))->required(),
                 TextInput::make('donation')->label('Davon Gönnerbeitrag (CHF)')->numeric(),
             ])
-            ->fillForm(fn (MembershipFee $record) => ['paid_at' => now(), 'donation' => $record->donation])
+            ->fillForm(fn (MembershipFee $record) => ['paid_at' => now()->format('d.m.Y'), 'donation' => $record->donation])
             ->action(function (MembershipFee $record, array $data) {
                 $record->update($data);
                 Notification::make()->title('Zahlung erfasst')->success()->send();

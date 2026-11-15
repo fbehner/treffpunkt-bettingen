@@ -2,10 +2,10 @@
 
 namespace App\Filament\Backoffice\Resources\Memberships\Schemas;
 
+use App\Filament\Backoffice\Forms\SwissDate;
 use App\Models\Membership;
 use App\Models\MembershipPerson;
 use App\Support\MembershipType;
-use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -60,18 +60,14 @@ class MembershipForm
                 Section::make('Status')
                     ->columnSpan(1)
                     ->schema([
-                        DatePicker::make('joined_at')
+                        SwissDate::make('joined_at')
                             ->label('Eintritt')
-                            ->default(now())
-                            ->required()
-                            ->native(false)
-                            ->displayFormat('d.m.Y'),
-                        DatePicker::make('left_at')
+                            ->default(now()->format('d.m.Y'))
+                            ->required(),
+                        SwissDate::make('left_at')
                             ->label('Austritt / Ausschluss')
                             ->helperText('Leer = aktives Mitglied.')
-                            ->native(false)
-                            ->displayFormat('d.m.Y')
-                            ->live(),
+                            ->live(onBlur: true),
                         Select::make('exit_reason')
                             ->label('Grund')
                             ->options(Membership::EXIT_REASONS)
@@ -121,10 +117,7 @@ class MembershipForm
                                         ->native(false),
                                     TextInput::make('first_name')->label('Vorname')->required(),
                                     TextInput::make('last_name')->label('Name'),
-                                    DatePicker::make('birthdate')
-                                        ->label('Geburtsdatum')
-                                        ->native(false)
-                                        ->displayFormat('d.m.Y'),
+                                    SwissDate::birthdate(),
                                     TextInput::make('birth_year')
                                         ->label('Jahrgang')
                                         ->helperText('Falls kein Geburtsdatum')
