@@ -36,8 +36,12 @@ class UserForm
                             ->required()
                             ->minItems(1)
                             ->columnSpanFull()
-                            // Eigenes Webadmin-Recht nicht versehentlich entfernen.
-                            ->disableOptionWhen(fn (string $value, ?User $record) => $value === 'admin' && $record?->is(auth()->user())),
+                            // Eigenes Webadmin-Recht nicht versehentlich entfernen (sonst sperrt man sich aus).
+                            ->rule(fn (?User $record) => function (string $attribute, mixed $value, \Closure $fail) use ($record) {
+                                if ($record?->is(auth()->user()) && $record->isAdmin() && ! in_array('admin', (array) $value, true)) {
+                                    $fail('Das eigene Webadmin-Recht kann man nicht selbst entfernen.');
+                                }
+                            }),
                         Toggle::make('is_active')
                             ->label('Aktiv')
                             ->helperText('Deaktivierte Konten können sich nicht mehr anmelden.')
