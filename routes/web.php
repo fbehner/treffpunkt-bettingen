@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\InvitationController;
 use App\Http\Controllers\MembershipController;
+use App\Http\Controllers\ReservationController;
 use App\Http\Controllers\SiteController;
 use Illuminate\Support\Facades\Route;
 
@@ -18,6 +19,12 @@ Route::get('/mitglied-werden/danke', [MembershipController::class, 'thanks'])->n
 Route::get('/mitglied-werden/bestaetigen/{application}', [MembershipController::class, 'confirm'])
     ->middleware('signed')
     ->name('membership.confirm');
+
+Route::get('/reservieren', [ReservationController::class, 'create'])->name('reservation.create');
+Route::post('/reservieren', [ReservationController::class, 'store'])
+    ->middleware('throttle:5,10')
+    ->name('reservation.store');
+Route::get('/reservieren/danke', [ReservationController::class, 'thanks'])->name('reservation.thanks');
 
 // Registrierung über Einladungslink (Konten für Verwaltung/Backoffice)
 Route::get('/einladung/fertig', [InvitationController::class, 'done'])->name('invitation.done');

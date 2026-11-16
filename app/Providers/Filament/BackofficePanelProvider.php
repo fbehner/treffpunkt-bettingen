@@ -22,8 +22,9 @@ use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 
 /**
- * Backoffice unter /backoffice: Beitrittsgesuche, Mitglieder, Beiträge.
- * Zugang nur mit der Rolle „Mitgliederverwaltung“ (siehe User::PANEL_ROLES).
+ * Backoffice unter /backoffice: Beitrittsgesuche, Mitglieder, Beiträge, Reservationen.
+ * Zugang mit der Rolle „Mitgliederverwaltung“ oder „Reservationen“ (siehe User::PANEL_ROLES);
+ * jeder Bereich prüft zusätzlich seine eigene Rolle.
  */
 class BackofficePanelProvider extends PanelProvider
 {
@@ -55,7 +56,7 @@ class BackofficePanelProvider extends PanelProvider
                 ],
                 'gray' => Color::Stone,
             ])
-            ->navigationGroups(['Mitglieder', 'Beiträge'])
+            ->navigationGroups(['Reservationen', 'Mitglieder', 'Beiträge', 'Protokoll'])
             ->discoverResources(in: app_path('Filament/Backoffice/Resources'), for: 'App\Filament\Backoffice\Resources')
             ->discoverPages(in: app_path('Filament/Backoffice/Pages'), for: 'App\Filament\Backoffice\Pages')
             ->pages([

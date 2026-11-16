@@ -25,19 +25,29 @@ class SentMailResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Gesendete E-Mails';
 
-    protected static string|UnitEnum|null $navigationGroup = 'Mitglieder';
+    protected static string|UnitEnum|null $navigationGroup = 'Protokoll';
 
     protected static ?int $navigationSort = 5;
 
-    /** Nur die Kategorien, die in diesen Bereich gehören. */
+    /** Nur die Kategorien, für die das Konto zuständig ist. */
     public static function getEloquentQuery(): Builder
     {
-        return parent::getEloquentQuery()->whereIn('category', ['mitglieder']);
+        return parent::getEloquentQuery()->whereIn('category', self::categories());
     }
 
     public static function canAccess(): bool
     {
-        return auth()->user()?->canManageMembers() ?? false;
+        return self::categories() !== [];
+    }
+
+    private static function categories(): array
+    {
+        $user = auth()->user();
+
+        return array_values(array_filter([
+            $user?->canManageMembers() ? 'mitglieder' : null,
+            $user?->canManageReservations() ? 'reservationen' : null,
+        ]));
     }
 
     public static function canCreate(): bool

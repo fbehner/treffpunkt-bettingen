@@ -46,6 +46,9 @@
             <a href="{{ route('posts.index') }}"
                @if (request()->is('aktuelles*')) aria-current="page" @endif
                class="py-2 font-medium text-dunkel no-underline hover:text-rost aria-[current=page]:text-rost aria-[current=page]:underline">Aktuelles</a>
+            <a href="{{ route('reservation.create') }}"
+               @if (request()->is('reservieren*')) aria-current="page" @endif
+               class="py-2 font-medium text-dunkel no-underline hover:text-rost aria-[current=page]:text-rost aria-[current=page]:underline">Räume reservieren</a>
             <a href="{{ route('membership.create') }}" class="button mt-2 md:mt-0 md:min-h-0 md:px-4 md:py-2.5">Mitglied werden</a>
         </nav>
     </header>
@@ -75,6 +78,7 @@
             @endif
             <nav aria-label="Weitere Links" class="flex flex-col items-start gap-2">
                 <a href="{{ route('membership.create') }}" class="text-creme hover:text-white">Mitglied werden</a>
+                <a href="{{ route('reservation.create') }}" class="text-creme hover:text-white">Räume reservieren</a>
                 @if (filled($s['statutes_file'] ?? null))
                     <a href="{{ \App\Support\Ui::file($s['statutes_file']) }}" class="text-creme hover:text-white">Statuten (PDF)</a>
                 @endif

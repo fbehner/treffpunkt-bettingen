@@ -7,7 +7,12 @@ use App\Mail\GuardianConfirmation;
 use App\Mail\MembershipReceived;
 use App\Mail\MembershipWelcome;
 use App\Mail\NewMembershipApplication;
+use App\Mail\NewReservationRequest;
 use App\Mail\NewUserRegistered;
+use App\Mail\ReservationCancelled;
+use App\Mail\ReservationConfirmed;
+use App\Mail\ReservationDeclined;
+use App\Mail\ReservationReceived;
 use App\Mail\UserInvitation;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\MassPrunable;
@@ -28,10 +33,16 @@ class SentMail extends Model
     public const CATEGORIES = [
         'konto' => 'Konten & Einladungen',
         'mitglieder' => 'Mitglieder',
+        'reservationen' => 'Reservationen',
         'sonstige' => 'Sonstige',
     ];
 
     private const CATEGORY_BY_MAILABLE = [
+        ReservationReceived::class => 'reservationen',
+        NewReservationRequest::class => 'reservationen',
+        ReservationConfirmed::class => 'reservationen',
+        ReservationDeclined::class => 'reservationen',
+        ReservationCancelled::class => 'reservationen',
         UserInvitation::class => 'konto',
         NewUserRegistered::class => 'konto',
         AccessGranted::class => 'konto',
@@ -49,6 +60,11 @@ class SentMail extends Model
         GuardianConfirmation::class => 'Bestätigung Erziehungsberechtigte',
         NewMembershipApplication::class => 'Meldung: neues Gesuch',
         MembershipWelcome::class => 'Aufnahmebestätigung',
+        ReservationReceived::class => 'Eingangsbestätigung Reservation',
+        NewReservationRequest::class => 'Meldung: neue Reservation',
+        ReservationConfirmed::class => 'Reservation bestätigt',
+        ReservationDeclined::class => 'Reservation abgelehnt',
+        ReservationCancelled::class => 'Reservation storniert',
     ];
 
     protected $fillable = ['category', 'mailable', 'to', 'subject', 'html', 'sent_at'];

@@ -30,6 +30,7 @@ class UsersTable
                     ->color(fn (string $state) => match ($state) {
                         'admin' => 'danger',
                         'mitglieder' => 'success',
+                        'reservationen' => 'info',
                         default => 'gray',
                     }),
                 IconColumn::make('is_active')

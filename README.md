@@ -16,6 +16,7 @@ Ein Konto kann mehrere Rollen haben (vergeben vom Webadmin unter *Verwaltung →
 | Webadmin | `/admin` | Benutzerkonten, Einstellungen, alle Inhalte |
 | Redaktion | `/admin` | Seiten, Angebote, Aktuelles |
 | Mitgliederverwaltung | `/backoffice` | Beitrittsgesuche, Mitglieder, Beiträge (Personendaten) |
+| Reservationen | `/backoffice` | Raumreservationen bestätigen, ablehnen, erfassen (ohne Mitgliederdaten) |
 
 Der Webadmin sieht **keine** Mitgliederdaten, ausser er hat zusätzlich die Rolle
 Mitgliederverwaltung.
@@ -42,6 +43,8 @@ zuweist, wird die Person per E-Mail informiert.
 | Beitrittsgesuche | Online-Gesuche und von Hand erfasste (Papier, E-Mail, persönlich); „Aufnehmen“ erzeugt die Mitgliedschaft |
 | Mitglieder | Mitgliedschaften mit Nummer, Personen (Stimmrecht ab 16), Eintritt/Austritt, Hinweis auf Altersübergang; Export Mitgliederliste und Stimmberechtigte für die GV |
 | Beiträge | Jahresbeiträge erzeugen, als bezahlt markieren, Export für die Rechnungsstellung |
+| Reservationen | Anfragen bestätigen / ablehnen, bestätigte stornieren (je mit E-Mail); eigene Belegungen wie den Jugendtreff direkt erfassen |
+| Gesendete E-Mails | Protokoll – jede Rolle sieht nur die E-Mails ihres Bereichs |
 
 Datenmodell: `Membership` (Rechnungseinheit) → `MembershipPerson` (Personen) und
 `MembershipFee` (ein Eintrag pro Jahr). `MembershipApplication` bleibt als Beleg.
@@ -60,7 +63,21 @@ Mitgliedschaftsarten in `app/Support/MembershipType.php` (Kind 12–15, Jugend
 E-Mail-Link. E-Mails gehen an die antragstellende Person und an die
 Kontakt-E-Mail aus den Einstellungen.
 
-Geplant: Raumreservierung.
+### Raumreservation (`/reservieren`)
+
+Reservierbar sind feste Pakete (`app/Support/RoomPackage.php`): Café,
+Gruppen- und Jugendraum, Familien- und Kinderraum, ganzes Untergeschoss, ganzes
+Haus. Zwei Reservationen stören sich, wenn ihre Pakete einen Raum teilen.
+
+- Die Website zeigt einen Belegungskalender mit **bestätigten** Reservationen
+  (nur der freiwillige Titel, sonst „Belegt“ – keine Namen).
+- Eine Anfrage blockiert nichts; erst „Bestätigen“ im Backoffice belegt den Raum.
+  Bestätigen ist gesperrt, wenn der Raum schon bestätigt vergeben ist.
+- Regeln für Anfragen (Vorlauf, Zeitfenster, Café erst nach Betriebsschluss) und
+  Stundentarife Mitglied/Nichtmitglied: *Einstellungen → Raumreservation / Raumtarife*.
+  Das Backoffice ist an diese Regeln nicht gebunden.
+- E-Mails: Eingangsbestätigung, Meldung an die Reservations-E-Mail (leer =
+  Kontakt-E-Mail), Bestätigung, Absage, Stornierung.
 
 ## Lokal entwickeln
 

@@ -4,6 +4,7 @@ namespace App\Filament\Pages;
 
 use App\Models\Setting;
 use App\Support\MembershipType;
+use App\Support\RoomPackage;
 use BackedEnum;
 use Filament\Actions\Action;
 use Filament\Forms\Components\FileUpload;
@@ -57,6 +58,17 @@ class Settings extends Page
                 ->required()
         )->all();
 
+        $tariffs = collect(RoomPackage::cases())->flatMap(fn (RoomPackage $p) => [
+            TextInput::make('tariff_'.$p->value.'_mitglied')
+                ->label($p->label().' – Mitglieder')
+                ->prefix('CHF')->suffix('/ Std.')
+                ->numeric()->minValue(0)->required(),
+            TextInput::make('tariff_'.$p->value.'_gast')
+                ->label($p->label().' – Nichtmitglieder')
+                ->prefix('CHF')->suffix('/ Std.')
+                ->numeric()->minValue(0)->required(),
+        ])->all();
+
         return $schema
             ->statePath('data')
             ->components([
@@ -93,6 +105,54 @@ class Settings extends Page
                             ->preserveFilenames()
                             ->columnSpanFull(),
                     ]),
+                Section::make('Raumreservation')
+                    ->description('Gilt für Anfragen über die Website. Im Backoffice erfasste Reservationen sind davon nicht betroffen.')
+                    ->columns(3)
+                    ->collapsible()
+                    ->schema([
+                        TextInput::make('reservation_email')
+                            ->label('E-Mail für neue Anfragen')
+                            ->helperText('Leer = Kontakt-E-Mail.')
+                            ->email()
+                            ->columnSpan(2),
+                        TextInput::make('reservation_lead_days')
+                            ->label('Frühestens in … Tagen')
+                            ->numeric()->minValue(0)->maxValue(60)->required(),
+                        TextInput::make('reservation_from')
+                            ->label('Frühester Beginn')
+                            ->placeholder('07:00')->regex('/^([01]\d|2[0-3]):(00|30)$/')->required()
+                            ->validationMessages(['regex' => 'Bitte als HH:MM in halben Stunden, z. B. 07:00.']),
+                        TextInput::make('reservation_until')
+                            ->label('Spätestes Ende')
+                            ->placeholder('23:00')->regex('/^([01]\d|2[0-4]):(00|30)$/')->required()
+                            ->validationMessages(['regex' => 'Bitte als HH:MM in halben Stunden, z. B. 23:00.']),
+                        TextInput::make('cafe_from')
+                            ->label('Café frei ab')
+                            ->helperText('Nach Betriebsschluss. Leer = ganzer Tag.')
+                            ->placeholder('18:00')->regex('/^([01]\d|2[0-3]):(00|30)$/')
+                            ->validationMessages(['regex' => 'Bitte als HH:MM in halben Stunden, z. B. 18:00.']),
+                        TextInput::make('reservation_max_months')
+                            ->label('Höchstens … Monate im Voraus')
+                            ->numeric()->minValue(1)->maxValue(36)->required(),
+                        FileUpload::make('house_rules_file')
+                            ->label('Hausordnung (PDF)')
+                            ->helperText('Wird im Reservationsformular verlinkt.')
+                            ->disk('public')
+                            ->directory('dokumente')
+                            ->visibility('public')
+                            ->acceptedFileTypes(['application/pdf'])
+                            ->preserveFilenames()
+                            ->columnSpan(2),
+                        Textarea::make('reservation_note')
+                            ->label('Hinweis im Formular')
+                            ->rows(3)
+                            ->columnSpanFull(),
+                    ]),
+                Section::make('Raumtarife')
+                    ->description('Preis pro Stunde in CHF. 0 = „Tarif auf Anfrage“. Bereits eingegangene Reservationen behalten ihren Betrag.')
+                    ->columns(2)
+                    ->collapsible()
+                    ->schema($tariffs),
                 Section::make('Mitgliederbeiträge')
                     ->description('Jahresbeiträge für das Beitrittsgesuch. Bereits eingegangene Gesuche behalten ihren Betrag.')
                     ->columns(3)

@@ -19,23 +19,26 @@ class User extends Authenticatable implements FilamentUser
      * - admin: Website-Administration (Benutzer, Einstellungen, alle Inhalte)
      * - redaktion: Inhalte der Website bearbeiten
      * - mitglieder: Backoffice – Gesuche, Mitglieder, Beiträge (Personendaten)
+     * - reservationen: Backoffice – Raumreservationen (ohne Mitgliederdaten)
      */
     public const ROLES = [
         'admin' => 'Webadmin',
         'redaktion' => 'Redaktion',
         'mitglieder' => 'Mitgliederverwaltung',
+        'reservationen' => 'Reservationen',
     ];
 
     public const ROLE_HINTS = [
         'admin' => 'Website: Benutzerkonten, Einstellungen und alle Inhalte',
         'redaktion' => 'Website: Seiten, Angebote und Aktuelles bearbeiten',
         'mitglieder' => 'Backoffice: Beitrittsgesuche, Mitglieder und Beiträge',
+        'reservationen' => 'Backoffice: Raumreservationen bestätigen und erfassen',
     ];
 
     /** Welche Rollen in welchen Bereich dürfen. */
     public const PANEL_ROLES = [
         'admin' => ['admin', 'redaktion'],
-        'backoffice' => ['mitglieder'],
+        'backoffice' => ['mitglieder', 'reservationen'],
     ];
 
     protected $fillable = [
@@ -80,6 +83,11 @@ class User extends Authenticatable implements FilamentUser
     public function canManageMembers(): bool
     {
         return $this->is_active && $this->hasRole('mitglieder');
+    }
+
+    public function canManageReservations(): bool
+    {
+        return $this->is_active && $this->hasRole('reservationen');
     }
 
     /** Nur aktive Konten mit passender Rolle dürfen in einen Bereich. */

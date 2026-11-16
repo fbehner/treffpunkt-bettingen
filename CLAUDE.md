@@ -39,9 +39,18 @@ Vereinswebsite **treffpunkt-bettingen.ch**. Der Betreuer (Frank) lässt die Webs
 - `ContentSeeder` legt nur fehlende Startinhalte an und überschreibt nie
   Bearbeitetes – er läuft bei jedem Deploy.
 - Rollen (`users.roles`, mehrere möglich): `admin` = Webadmin (Benutzer,
-  Einstellungen, Inhalte), `redaktion` = Inhalte, `mitglieder` = Backoffice.
-  Zugriff je Bereich: `User::PANEL_ROLES`. Webadmin sieht ohne `mitglieder`
-  keine Personendaten – so lassen.
+  Einstellungen, Inhalte), `redaktion` = Inhalte, `mitglieder` = Backoffice
+  Mitglieder, `reservationen` = Backoffice Reservationen.
+  Zugriff je Bereich: `User::PANEL_ROLES`; jede Backoffice-Resource/-Widget prüft
+  zusätzlich ihre Rolle (`canManageMembers()` / `canManageReservations()`).
+  Webadmin sieht ohne `mitglieder` keine Personendaten – so lassen.
+- Raumreservation: Pakete in `App\Support\RoomPackage`, Regeln in
+  `App\Support\ReservationRules`, Mails über `App\Support\ReservationMails`.
+  Nur Status `bestaetigt` belegt einen Raum.
+- Produktiv-DB ist **MySQL 5.7**: keine JSON-Spalten mit Default, keine
+  Funktions-Defaults in Migrationen.
+- Datum/Zeit aus `attributesToArray()` kommen als UTC-ISO – vor dem Anzeigen in
+  `config('app.timezone')` umrechnen.
 - Backoffice-Code unter `app/Filament/Backoffice/`. Mitgliedschaft entsteht nur
   über „Aufnehmen“ (`MembershipApplication::accept()`) oder direkte Erfassung.
 
