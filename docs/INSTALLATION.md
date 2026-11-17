@@ -101,10 +101,29 @@ reicht für einen Verein.
 Die Inhalte liegen in der MySQL-Datenbank. Regelmässig über das Kundenportal
 (phpMyAdmin → Export) sichern – oder per Cronjob mit `mysqldump`.
 
-## Neue Version von Hand einspielen (ZIP-Paket)
+## Neue Version per ZIP-Paket (Windows, ohne rsync)
 
-Wenn `scripts/deploy.sh` nicht genutzt wird, sondern ein fertiges Paket
-`treffpunkt-bettingen-upload.zip` per SFTP ins Home-Verzeichnis geladen wurde:
+Paket lokal bauen (nimmt den committeten Stand, nicht die Arbeitskopie):
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\build-package.ps1
+```
+
+Das legt neben dem Repo-Ordner `treffpunkt-bettingen-upload.zip` und
+`server-update.sh` ab. Beide per SFTP ins Home-Verzeichnis laden, dann:
+
+```bash
+ssh USER@HOST
+bash ~/server-update.sh          # ggf. DEPLOY_PHP=php8.3 bash ~/server-update.sh
+```
+
+Das Skript sichert die Datenbank nach `~/backup/`, tauscht die Version
+(alte bleibt als `~/app-alt-DATUM`), migriert und leert die Caches. Bei
+einem Fehler zeigt es den Befehl zum Zurückwechseln an.
+
+### Dasselbe von Hand
+
+Wenn `treffpunkt-bettingen-upload.zip` per SFTP ins Home-Verzeichnis geladen wurde:
 
 ```bash
 cd ~
